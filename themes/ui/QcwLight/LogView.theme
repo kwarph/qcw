@@ -1,0 +1,7 @@
+{
+    "debugColor": "#1565c0",
+    "infoColor": "#2e7d32",
+    "warningColor": "#b26a00",
+    "criticalColor": "#c62828",
+    "fatalColor": "#8e0000"
+}

@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/qcw/icons">
+        <file alias="perspective.svg">icons/perspective.svg</file>
+        <file alias="view.svg">icons/view.svg</file>
+        <file alias="new_perspective.svg">icons/new_perspective.svg</file>
+        <file alias="new_view.svg">icons/new_view.svg</file>
+        <file alias="folder_maximize.svg">icons/folder_maximize.svg</file>
+        <file alias="folder_restore.svg">icons/folder_restore.svg</file>
+        <file alias="folder_minimize.svg">icons/folder_minimize.svg</file>
+        <file alias="tab_list.svg">icons/tab_list.svg</file>
+    </qresource>
+</RCC>

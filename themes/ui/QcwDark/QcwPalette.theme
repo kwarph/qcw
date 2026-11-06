@@ -1,0 +1,34 @@
+{
+    "style": "Fusion",
+    "colors": {
+        "Window": "#232629",
+        "WindowText": "#eff0f1",
+        "Base": "#1b1e20",
+        "AlternateBase": "#2a2e31",
+        "ToolTipBase": "#31363b",
+        "ToolTipText": "#eff0f1",
+        "PlaceholderText": "#7b8389",
+        "Text": "#eff0f1",
+        "Button": "#31363b",
+        "ButtonText": "#eff0f1",
+        "BrightText": "#ff5c5c",
+        "Link": "#3daee9",
+        "LinkVisited": "#9b59b6",
+        "Highlight": "#3daee9",
+        "HighlightedText": "#ffffff",
+        "Light": "#454a4f",
+        "Midlight": "#3a3f43",
+        "Mid": "#2d3134",
+        "Dark": "#1b1e20",
+        "Shadow": "#121416",
+        "Accent": "#3daee9"
+    },
+    "disabledColors": {
+        "WindowText": "#7b8389",
+        "Text": "#7b8389",
+        "ButtonText": "#7b8389",
+        "Highlight": "#3a4145",
+        "HighlightedText": "#9aa2a8",
+        "Link": "#7b8389"
+    }
+}

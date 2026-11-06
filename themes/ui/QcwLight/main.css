@@ -1,0 +1,111 @@
+QToolBar {
+    background: transparent;
+    border: none;
+}
+
+QToolButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+}
+
+QToolBar QToolButton {
+    width: 19px;
+    height: 19px;
+}
+
+QToolButton:hover {
+    background-color: #dadada;
+}
+
+QToolButton:pressed {
+    background-color: #c9c9c9;
+}
+
+QToolButton:checked {
+    background-color: #cfcfcf;
+}
+
+QToolBar QToolButton:disabled {
+    background: transparent;
+}
+
+QScrollBar {
+    background: transparent;
+    border: none;
+}
+
+QScrollBar:vertical {
+    width: 12px;
+}
+
+QScrollBar:horizontal {
+    height: 12px;
+}
+
+QScrollBar::handle {
+    background-color: #d2d4d5;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 24px;
+    margin: 2px 3px;
+}
+
+QScrollBar::handle:horizontal {
+    min-width: 24px;
+    margin: 3px 2px;
+}
+
+QScrollBar::handle:hover {
+    background-color: #bcbfc1;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0;
+    height: 0;
+    border: none;
+    background: none;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: transparent;
+}
+
+/* The overlay bar looks like the real one, but its handle is see-through: it floats over
+   the content, which has to stay readable beneath it. The 3 px margins of real handles are
+   left out, the 14 px width of a bar already doing their job. */
+
+QcwOverlayScrollBar {
+    background: transparent;
+    border: none;
+}
+
+QcwOverlayScrollBar:vertical {
+    width: 14px;
+}
+
+QcwOverlayScrollBar:horizontal {
+    height: 14px;
+}
+
+QcwOverlayScrollBar::handle {
+    background-color: rgba(82, 88, 92, 100);
+    border: none;
+    border-radius: 3px;
+}
+
+QcwOverlayScrollBar::handle:vertical {
+    min-height: 24px;
+    margin: 0 3px;
+}
+
+QcwOverlayScrollBar::handle:horizontal {
+    min-width: 24px;
+    margin: 3px 0;
+}
+
+QcwOverlayScrollBar::handle:hover {
+    background-color: rgba(82, 88, 92, 150);
+}

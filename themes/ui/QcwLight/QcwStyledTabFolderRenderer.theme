@@ -1,0 +1,13 @@
+{
+    "tabBarSpacing": 6,
+    "tabBarPadding": "6 6 6 6",
+    "pageMargins": "0 0 0 0",
+    "surroundColor": "#eff0f1",
+    "tabBorderRadius": "4 4 4 4",
+    "tabBorderColor": "#dddddd",
+    "dirtyTextColor": "#00c853",
+    "hoveredTabBackground": "#f1f1f1",
+    "selectedTabBackground": "#e3e3e3",
+    "activeTabBackground": "#b2ebf2",
+    "folderCss": "QcwTabFolder { background-color: #ffffff; border-radius: 10px; } QcwTabFolder QToolButton:hover { background-color: #e9e9e9; } QcwTabFolder QToolButton:pressed { background-color: #dcdcdc; } QcwTabFolder QToolButton:disabled { background: transparent; } QcwTabFolder QToolButton::menu-indicator { image: none; width: 0px; height: 0px; }"
+}

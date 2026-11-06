@@ -1,0 +1,7 @@
+{
+    "folderRenderer": "QcwStyledTabFolderRenderer",
+    "centralMargins": "4 6 6 6",
+    "fastViewMargin": 6,
+    "fastViewHasBorder": false,
+    "windowCss": "QcwWindow { background-color: #232629; } QWidget#qcwCentralWidget { background: transparent; } QMenuBar { background: transparent; border: none; } QMenuBar::item { background: transparent; padding: 4px 10px; border-radius: 4px; } QMenuBar::item:selected { background-color: #464c4f; } QMenuBar::item:pressed { background-color: palette(highlight); color: palette(highlighted-text); } QToolBar { spacing: 2px; padding: 4px; } QToolBar::separator { background-color: #3a3f43; width: 1px; margin: 4px 4px; } QToolBar QToolButton { border-radius: 4px; } QMainWindow::separator { background: transparent; width: 4px; height: 4px; } QSplitter::handle { background: transparent; } QStatusBar { background: transparent; border: none; color: #9aa2a8; } QStatusBar::item { border: none; } QSplitter::handle:horizontal { width: 6px; } QSplitter::handle:vertical { height: 6px; }"
+}

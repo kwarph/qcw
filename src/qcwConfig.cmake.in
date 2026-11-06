@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Qt6 REQUIRED COMPONENTS Widgets)
+
+include("${CMAKE_CURRENT_LIST_DIR}/qcwTargets.cmake")
+
+set_and_check(qcw_DATA_DIR "@PACKAGE_QCW_INSTALL_DATA_DIR@")

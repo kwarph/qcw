@@ -1,0 +1,33 @@
+// SPDX-FileCopyrightText: 2026 Cheng Lei <kwarph@users.noreply.github.com>
+// SPDX-License-Identifier: BSD-3-Clause
+
+#pragma once
+
+#include "QcwGlobal.h"
+
+#define QCW_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define QCW_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define QCW_VERSION_PATCH @PROJECT_VERSION_PATCH@
+
+/**
+ * @brief Composes a numeric version from its components.
+ * @details The result compares like a version number, so code can test
+ *          @c QCW_VERSION >= QCW_VERSION_CHECK(1, 2, 0) at compile time.
+ */
+#define QCW_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+
+/// The version of the headers this code is compiled against.
+#define QCW_VERSION QCW_VERSION_CHECK(QCW_VERSION_MAJOR, QCW_VERSION_MINOR, QCW_VERSION_PATCH)
+
+/// The version of the headers this code is compiled against, as "MAJOR.MINOR.PATCH".
+#define QCW_VERSION_STR "@PROJECT_VERSION@"
+
+/**
+ * @brief Returns the version of the library that is loaded at runtime.
+ * @return A static "MAJOR.MINOR.PATCH" string owned by the library.
+ *
+ * A program can be compiled against one set of headers and load a different
+ * library at run time; use this function when reporting the version actually
+ * in use.
+ */
+QCW_EXPORT const char* qcwVersion() noexcept;

@@ -1,0 +1,13 @@
+{
+    "tabBarSpacing": 6,
+    "tabBarPadding": "6 6 6 6",
+    "pageMargins": "0 0 0 0",
+    "surroundColor": "#232629",
+    "tabBorderRadius": "4 4 4 4",
+    "tabBorderColor": "#3a3f43",
+    "dirtyTextColor": "#4caf50",
+    "hoveredTabBackground": "#2a2e31",
+    "selectedTabBackground": "#31363b",
+    "activeTabBackground": "#1f4b50",
+    "folderCss": "QcwTabFolder { background-color: #1b1e20; border-radius: 10px; } QcwTabFolder QToolButton::menu-indicator { image: none; width: 0px; height: 0px; }"
+}

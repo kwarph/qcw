@@ -1,0 +1,50 @@
+# Doxyfile template for the QCW API documentation.
+#
+# docs/CMakeLists.txt configures this file into the build tree, filling in the source and
+# output paths and the project version. Generate the documentation with the "docs" target.
+
+PROJECT_NAME           = QCW
+PROJECT_BRIEF          = "Qt 6 workbench framework"
+PROJECT_NUMBER         = @PROJECT_VERSION@
+
+OUTPUT_DIRECTORY       = @QCW_DOC_OUTPUT_DIR@
+HTML_OUTPUT            = html
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+
+# The README is the entry page; the headers of the library and the demos follow it as classes.
+INPUT                  = @QCW_SOURCE_DIR@/README.md \
+                         @QCW_SOURCE_DIR@/src \
+                         @QCW_SOURCE_DIR@/examples
+FILE_PATTERNS          = *.h *.md
+RECURSIVE              = YES
+EXCLUDE                = @QCW_SOURCE_DIR@/src/core/QcwVersion.h.in
+EXCLUDE_PATTERNS       = */build/*
+USE_MDFILE_AS_MAINPAGE = @QCW_SOURCE_DIR@/README.md
+
+# README images are written relative to the repository root.
+IMAGE_PATH             = @QCW_SOURCE_DIR@
+
+# The public headers are documented; a member without a comment is a gap worth warning about.
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+HIDE_UNDOC_MEMBERS     = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_NO_PARAMDOC       = NO
+QUIET                  = YES
+WARNINGS               = YES
+WARN_LOGFILE           = doxygen-warnings.log
+
+# Qt namespace macros and the export macro mean nothing to the parser.
+PREDEFINED             = QT_BEGIN_NAMESPACE= QT_END_NAMESPACE= QCW_EXPORT=
+
+# Qt help: the .qch that Qt Assistant and Qt Creator read.
+@QCW_QHG_LOCATION@
+QHP_NAMESPACE          = org.qcw.qcw
+QHP_VIRTUAL_FOLDER     = doc
+QHP_CUST_FILTER_NAME   = QCW
+QHP_CUST_FILTER_ATTRS  = qcw
+QHP_SECT_FILTER_ATTRS  = qcw
+
+TIMESTAMP              = NO
