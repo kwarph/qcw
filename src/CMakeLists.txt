@@ -5,7 +5,7 @@ configure_file(core/QcwVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/QcwVersion.h @ON
 add_library(${TARGET} SHARED)
 
 set_target_properties(${TARGET} PROPERTIES
-    CXX_STANDARD 23
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     POSITION_INDEPENDENT_CODE ON # -fPIC
     VERSION ${PROJECT_VERSION}
@@ -20,18 +20,8 @@ target_sources(${TARGET}
         core/QcwPersistable.cpp
         core/QcwPluginLoader.cpp
         core/QcwPluginManager.cpp
-        core/QcwSessionData.cpp
         core/QcwSettings.cpp
         core/QcwVersion.cpp
-
-        docking/QcwDefaultTabFolderRenderer.cpp
-        docking/QcwFastViewToolBar.cpp
-        docking/QcwFloatingFolderMonitor.cpp
-        docking/QcwTabFolder.cpp
-        docking/QcwTabFolderContainer.cpp
-        docking/QcwTabFolderRenderer.cpp
-        docking/QcwTabFolderSite.cpp
-        docking/QcwTabPaneManager.cpp
 
         resources/icons.qrc
 
@@ -49,7 +39,6 @@ target_sources(${TARGET}
         theming/QcwThemeUtils.cpp
 
         widgets/QcwClickableLabel.cpp
-        widgets/QcwFilterableListWidget.cpp
         widgets/QcwFixedRowHeightItemDelegate.cpp
         widgets/QcwOverlayScrollArea.cpp
         widgets/QcwOverlayScrollBar.cpp
@@ -77,7 +66,6 @@ target_sources(${TARGET}
         workbench/QcwSavedPerspectives.cpp
         workbench/QcwServiceRegistry.cpp
         workbench/QcwStyledTabFolderRenderer.cpp
-        workbench/QcwTabFolderRendererCreators.cpp
         workbench/QcwTopicRegistry.cpp
         workbench/QcwTopicService.cpp
         workbench/QcwTranslations.cpp
@@ -105,21 +93,7 @@ target_sources(${TARGET}
             core/QcwPluginManager.h
             core/QcwPluginTemplate.h
             core/QcwSerializeUtils.h
-            core/QcwSessionData.h
             core/QcwSettings.h
-
-    FILE_SET headers_docking TYPE HEADERS
-        BASE_DIRS docking
-        FILES
-            docking/QcwDefaultTabFolderRenderer.h
-            docking/QcwDockingTypes.h
-            docking/QcwFastViewToolBar.h
-            docking/QcwFloatingFolderMonitor.h
-            docking/QcwTabFolder.h
-            docking/QcwTabFolderContainer.h
-            docking/QcwTabFolderRenderer.h
-            docking/QcwTabFolderSite.h
-            docking/QcwTabPaneManager.h
 
     FILE_SET headers_preferences TYPE HEADERS
         BASE_DIRS preferences
@@ -149,7 +123,6 @@ target_sources(${TARGET}
         BASE_DIRS widgets
         FILES
             widgets/QcwClickableLabel.h
-            widgets/QcwFilterableListWidget.h
             widgets/QcwFixedRowHeightItemDelegate.h
             widgets/QcwOverlayScrollArea.h
             widgets/QcwOverlayScrollBar.h
@@ -182,7 +155,6 @@ target_sources(${TARGET}
             workbench/QcwSavedPerspectives.h
             workbench/QcwServiceRegistry.h
             workbench/QcwStyledTabFolderRenderer.h
-            workbench/QcwTabFolderRendererCreators.h
             workbench/QcwTopicRegistry.h
             workbench/QcwTopicService.h
             workbench/QcwTranslations.h
@@ -195,7 +167,7 @@ target_sources(${TARGET}
 )
 
 target_link_libraries(${TARGET}
-    PUBLIC Qt::Widgets
+    PUBLIC Qt::Widgets QCWDOCK::qcwdocking
     PRIVATE Qt::Svg
 )
 
@@ -222,7 +194,6 @@ install(TARGETS ${TARGET}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     FILE_SET headers_core DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qcw
-    FILE_SET headers_docking DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qcw
     FILE_SET headers_preferences DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qcw
     FILE_SET headers_notifications DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qcw
     FILE_SET headers_theming DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qcw

@@ -2,25 +2,25 @@
 
 ## Singletons
 
-Fifteen classes are process-wide singletons, all built the same way:
+Eleven classes are process-wide singletons, all built the same way:
 
 | Class | Accessor macro |
 |---|---|
 | `QcwActionSetRegistry` | `actionSetRegistry` |
 | `QcwCommandRegistry` | `commandRegistry` |
 | `QcwContributionRegistry` | `contributionRegistry` |
-| `QcwFloatingFolderMonitor` | `floatingFolderMonitor` |
 | `QcwNotificationManager` | `notificationManager` |
 | `QcwPluginManager` | `pluginManager` |
 | `QcwPreferencesManager` | `preferencesManager` |
 | `QcwSavedPerspectives` | `savedPerspectives` |
 | `QcwServiceRegistry` | `serviceRegistry` |
-| `QcwSessionData` | `sessionData` |
-| `QcwTabFolderRendererCreators` | `folderRendererCreators` |
-| `QcwTabPaneManager` | `tabPaneManager` |
 | `QcwThemeManager` | `themeManager` |
 | `QcwTopicRegistry` | `topicRegistry` |
 | `QcwWindowStyler` | `windowStyler` |
+
+The docking library keeps four more of its own (`QcwFastViewStyleSettings`,
+`QcwFloatingFolderMonitor`, `QcwTabFolderRendererCreators` and `QcwTabPaneManager`); they follow
+the same pattern but live in the qcw-docking submodule and are documented in its `AGENTS.md`.
 
 The pattern is always:
 
@@ -55,16 +55,14 @@ How to read and treat them:
 - The lowerCamelCase macro next to `instance()` is the project's way of calling it, not an
   oversight. Keep using it; do not propose replacing it with `instance()` or with a
   dependency-injection refactor.
-- Twelve of the fifteen declare no constructor at all and use the implicit default one, so
+- Nine of the eleven declare no constructor at all and use the implicit default one, so
   the global is never parented and nobody can build a second instance by accident.
-  `QcwFloatingFolderMonitor` declares one that takes a `parent`, but nothing passes one — the
-  global instance has no parent, because it must outlive everything that listens to it.
   `QcwNotificationManager` and `QcwWindowStyler` declare constructors and destructors for
   their own setup, but `instance()` is still the only intended way to get them.
-  The plain-data registries among them — `QcwActionSetRegistry`,
-  `QcwTabFolderRendererCreators`, `QcwServiceRegistry` and `QcwTopicRegistry` — are not even
-  `QObject`s: they are id-to-metadata, name-to-factory, interface-to-service and
-  id-to-topic-metadata maps, and their globals must not be duplicated either.
+  The plain-data registries among them — `QcwActionSetRegistry`, `QcwServiceRegistry` and
+  `QcwTopicRegistry` — are not even `QObject`s: they are id-to-metadata,
+  interface-to-service and id-to-topic-metadata maps, and their globals must not be
+  duplicated either.
 - When documenting one of these classes, say it is the single global instance and that a
   second one is pointless — nothing connects to it, and lookups go through the macro, so a
   second registry would never be seen. Do not add shutdown/lifetime caveats.
@@ -75,8 +73,8 @@ Every process-wide registry and every handler map follows one of three models. M
 of the class you are extending instead of inventing a fourth.
 
 - **Copies — owns nothing.** `QcwActionSetRegistry`, `QcwCommandRegistry`,
-  `QcwContributionRegistry`, `QcwSavedPerspectives`, `QcwSessionData`,
-  `QcwTabFolderRendererCreators`, `QcwThemeManager`, `QcwTopicRegistry`. The registry stores
+  `QcwContributionRegistry`, `QcwSavedPerspectives`, `QcwThemeManager`, `QcwTopicRegistry`.
+  The registry stores
   values (a copy of a struct, string, path or `std::function`). The caller may drop the original
   as soon as the call returns, and removing an entry — where the class offers it — only forgets
   a copy; it never deletes anything. A later registration under the same id replaces the copy.
@@ -97,10 +95,33 @@ of the class you are extending instead of inventing a fourth.
   the raw page, and never deletes it — not even at shutdown. A refused registration returns
   false and leaves the object with the caller, who must delete it. There is no removal API.
 
-`QcwTabPaneManager` is the one class that deletes what it tracks: a pane is reference-counted
-across the folders that show it and `deleteLater()`ed when the last folder releases it;
-`clear(deletePanes)` drops every entry at session teardown. `QcwTopicService` is scope-owned:
+The docking registries (`QcwTabPaneManager`, `QcwFloatingFolderMonitor`,
+`QcwFastViewStyleSettings`, `QcwTabFolderRendererCreators`) follow their own repository's
+ownership models; see `third_party/qcw-docking/AGENTS.md`. `QcwTopicService` is scope-owned:
 its lifetime belongs to the window or workbench that created it, not to a registry.
+
+## Docking library
+
+The tab-folder widgets are not part of this library anymore: they are the **qcw-docking**
+project under `third_party/qcw-docking` (a git submodule), built as target `qcwdocking` and
+linked into `qcommonworkbench` as `QCWDOCK::qcwdocking`. Its headers install under
+`include/qcwdocking`; do not re-add docking sources under `src/`. `QCW_USE_SYSTEM_QCWDOCKING=ON`
+switches the build to `find_package(qcwdocking 1.0 REQUIRED)` for a separately installed copy.
+
+The two repositories meet at a few explicit seams, and QCW owns its side of each:
+
+- `QcwWindowStyler::loadWindowStyle()` writes the fast-view margin and border through
+  `QcwFastViewStyleSettings`. The docking toolbar reads them when it opens.
+- `QcwWorkbench::registerFolderRendererCreators()` installs the palette-tinted icon provider
+  (`IconKind` → `qcw::themeIcon`) before it registers the built-in renderer names. Without it
+  docking falls back to the style's standard icons.
+- `QcwWorkbench::initialize()` registers the `qcwdocking` catalog base before applying the stored
+  language, so the folder chrome follows the language selector.
+
+Docking's own singleton, ownership, renderer and serialization conventions are recorded in
+`third_party/qcw-docking/AGENTS.md`; read that file before changing anything there. Do not make
+docking include workbench classes to solve a coupling problem — invert the dependency at a seam
+like the three above.
 
 ## Component interaction
 
@@ -210,7 +231,8 @@ Three rules the subsystem exists to enforce:
 - **Never vendor Qt's catalogs.** `qtbase_<locale>.qm` is loaded from
   `QLibraryInfo::path(QLibraryInfo::TranslationsPath)`, which closes the search list and always is
   the Qt the application links against. A copy under `translations/` would freeze it at whichever
-  Qt it was taken from, so that directory holds only `qcw_<locale>.ts` and `.qm`.
+  Qt it was taken from, so that directory holds only `qcw_<locale>.ts` and `.qm`; the docking
+  widgets ship their own `qcwdocking_<locale>` catalogs from their repository.
 - **`qtbase` never advertises a language.** `availableLocales()` lists the application-owned bases
   — `qcw` plus the registered ones — and adds `en`, the language the sources are written in. A Qt
   installation carries a catalog for every language Qt supports, so listing its file names would
@@ -219,6 +241,10 @@ Three rules the subsystem exists to enforce:
   subscribes to `QcwLanguageTopic` (`app/language`, payload key `locale`). The empty choice is
   "follow the system" and is stored as *no* value at all, so a moved system locale is followed on
   the next start.
+
+`QcwWorkbench::initialize()` registers the `qcwdocking` base itself, before the stored language is
+applied. The catalogs install into the same `share/qcw/translations` directory as `qcw`'s, so the
+existing search order finds them; do not copy docking contexts into `qcw_<locale>.ts`.
 
 A plugin registers its own base from `doRegisterContributions()`, which runs after the stored
 language has been applied; `QcwWorkbench::initialize()` compares `catalogBases()` around the plugin

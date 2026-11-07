@@ -77,7 +77,14 @@ struct QCW_EXPORT QcwContribution
     /// True when every field matches, which is what lets QcwContributionRegistry tell a
     /// re-registration of the same entry — a language change re-declares the built-ins — from a
     /// replacement that quietly moves or hides something.
-    bool operator==(const QcwContribution&) const = default;
+    bool operator==(const QcwContribution& other) const
+    {
+        return id == other.id && actionSetId == other.actionSetId && target == other.target &&
+               commandId == other.commandId && before == other.before && after == other.after &&
+               groupId == other.groupId && visible == other.visible;
+    }
+
+    bool operator!=(const QcwContribution& other) const { return !(*this == other); }
 };
 
 QT_END_NAMESPACE

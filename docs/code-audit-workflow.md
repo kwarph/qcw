@@ -30,8 +30,8 @@ wrong, and then the header documentation is updated in the same change.
 | Item | Value |
 |---|---|
 | OS | Linux (x86_64) |
-| Compiler | `/usr/bin/clang++`, C++23 |
-| Qt | Qt 6 (Widgets, Svg), CMake package at `/usr/lib/cmake/Qt6` |
+| Compiler | `/usr/bin/clang++`, C++17 |
+| Qt | Qt 6.9+ (Widgets, Svg), CMake package at `/usr/lib/cmake/Qt6` |
 | Build system | CMake 3.23+, Ninja, CTest |
 | Test harness | plain `main()` + `check()`, no QtTest; `QT_QPA_PLATFORM=offscreen` |
 | Test auto-close | `QCW_TEST_AUTOCLOSE=1` (set by CTest for every test) |
@@ -223,7 +223,7 @@ llvm-cov report ./src/libqcommonworkbench.so -instr-profile=qcw.profdata \
 
 # per-line counts to prove specific repair paths executed
 llvm-cov show ./src/libqcommonworkbench.so -instr-profile=qcw.profdata \
-  -sources "$PWD/../src/docking/QcwTabFolder.cpp" -show-line-counts
+  -sources "$PWD/../qcw-docking/src/QcwTabFolder.cpp" -show-line-counts
 ```
 
 Things that cost time and are worth remembering:
@@ -314,7 +314,7 @@ most recent families are documented below.
   `isAncestorOf(this)` answered true for the folder itself. The release then reported the real
   index (or none), so consumers saw a spurious activation.
 - **Fix.** Exclude the folder from the deep-click branch in the event filter
-  (`src/docking/QcwTabFolder.cpp`).
+  (`qcw-docking/src/QcwTabFolder.cpp`, bundled as `third_party/qcw-docking`).
 - **Tests.** Seven scenarios: selection on release, the close button, double click, hover and a
   short (cancelled) press, a cancelled drag detaching the tab into a floating folder, a
   non-detachable tab refusing that drag, and deep-click promotion.

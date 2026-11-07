@@ -6,8 +6,8 @@
 #include "QcwPreferencesDialog.h"
 #include "QcwWindowActionIds.h"
 #include "QcwNotificationManager.h"
+#include "QcwFastViewStyleSettings.h"
 #include "QcwPerspective.h"
-#include "QcwSessionData.h"
 #include "QcwSettings.h"
 #include "QcwTabFolder.h"
 #include "QcwTabFolderContainer.h"
@@ -68,8 +68,8 @@ WindowStyle loadWindowStyle(const QString& style)
         result.fastViewHasBorder = jobj.value("fastViewHasBorder").toBool();
     }
 
-    sessionData->setValue("fastViewMargin", result.fastViewMargin);
-    sessionData->setValue("fastViewHasBorder", result.fastViewHasBorder);
+    fastViewStyleSettings->setFastViewMargin(result.fastViewMargin);
+    fastViewStyleSettings->setFastViewHasBorder(result.fastViewHasBorder);
 
     const QString themeDirectory = QDir::fromNativeSeparators(themeManager->currentThemeDirectory());
     if (!themeDirectory.isEmpty())

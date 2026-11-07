@@ -58,7 +58,9 @@ struct Note
     QString text;
     QDateTime createdAt;
 
-    bool operator==(const Note&) const = default;
+    bool operator==(const Note& other) const { return text == other.text && createdAt == other.createdAt; }
+
+    bool operator!=(const Note& other) const { return !(*this == other); }
 };
 
 /**

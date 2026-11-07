@@ -6,8 +6,9 @@ needs: a workbench that restores and saves sessions, windows that switch between
 tab folders that dock, float and minimize, and plugins that contribute views and layouts. An
 application starts from a working shell and adds its own features as plugins.
 
-- C++23, Qt 6 (Widgets, Svg), CMake 3.23+
-- Library target `qcommonworkbench`, version 1.0.0
+- C++17, Qt 6.9+ (Widgets, Svg), CMake 3.23+
+- Library target `qcommonworkbench`, version 2.0.0
+- Docking widgets come from the companion **qcw-docking** library (`QCWDOCK::qcwdocking`), bundled as a git submodule
 - BSD-3-Clause
 
 ## What you get
@@ -16,7 +17,7 @@ application starts from a working shell and adds its own features as plugins.
 |---|---|
 | Workbench lifecycle | Session restore and save, multiple windows, plugin loading, global command handlers, and a shutdown that asks every view before closing |
 | Perspectives | Named folder arrangements per window; the dummy perspective for views outside any perspective; a shared folder that survives perspective switches; save, reset and close commands; a saved-perspective store |
-| Docking | Splitter tree of tab folders with drag-and-drop between them, detach-to-float, minimize to window-edge fast-view tool bars, maximize, placeholders, and XML layout state; usable on its own in a plain `QMainWindow` |
+| Docking | The qcw-docking companion library: splitter tree of tab folders with drag-and-drop between them, detach-to-float, minimize to window-edge fast-view tool bars, maximize, placeholders, and XML layout state; usable on its own in a plain `QMainWindow` |
 | Views | `QcwView` identity and re-creation through creators, per-view command handlers, status bar widget, top-right view tool bar, published topics, and an asynchronous close protocol for unsaved work |
 | Menus and commands | A command catalog, declarative menu contributions with ordering and separators, handlers resolved per view, perspective, window or process, a searchable command palette, and action sets a perspective can hide as a group |
 | Plugins | `QcwViewCreator` and `QcwPerspectiveCreator` interfaces, plus any `QcwPlugin` subclass for non-UI capabilities; a metadata macro pair, a loader and a manager; plugins never link to one another |
@@ -68,53 +69,51 @@ capability it wants plugins to provide; see
 
 ### Docking without the workbench
 
-If docking is what brought you here, the rest of QCW is optional. `QcwTabFolderContainer` and
-`QcwTabFolder` are ordinary widgets that do not depend on the workbench — no `QcwWindow`, no
-perspectives, no views and no plugins. The container can therefore be the central widget of a
-plain `QMainWindow`:
-[`folder_container_demo`](examples/folder_container_demo/README.md) has no `QcwWindow`, yet
-splitting, drag-and-drop between folders, detach-to-float, tab state and layout XML all work.
+The folder widgets live in the companion **qcw-docking** project. It depends only on Qt
+Widgets: no workbench, no perspectives, no views and no plugins. `QcwTabFolderContainer` and
+`QcwTabFolder` are ordinary widgets, so the container can be the central widget of a plain
+`QMainWindow`. Its own `folder_container_demo` and `folder_renderer_demo` show that setup,
+including a container hosted by a plain `QDialog` and a folder whose renderer is swapped at run
+time; both examples ship with that repository.
 
-Minimize is the one part that depends on the host: the container reports a minimized folder
-through `folderMinimized()` and leaves the window-edge tool bar to the application (the demo
-calls `QMainWindow::addToolBar()`). Without minimize, the container also works inside any
-ordinary widget — a `QDialog`, a `QWidget`, a `QFrame`; the demo's `File > Docking in a
-Dialog...` does exactly that, with `qcw::Minimizable` switched off.
-
-And when docking is not needed at all, a lone `QcwTabFolder` is a `QTabWidget` replacement:
-tabs with icons, tooltips, close buttons, dirty marks, per-tab detach control and replaceable
-painting, hosted directly in a layout.
-[`folder_renderer_demo`](examples/folder_renderer_demo/README.md) shows that setup and swaps
-the renderer at run time.
+QCW bundles qcw-docking as the `third_party/qcw-docking` submodule and re-exports it, so a
+workbench application includes the docking headers from the same build. The docking catalogs
+are registered by `QcwWorkbench::initialize()`, and the docking headers install under
+`include/qcwdocking` rather than into QCW's own `include/qcw`.
 
 ## Build and run
 
-Requirements: a C++23 compiler, CMake 3.23+, and the Qt 6 Widgets and Svg development packages.
+Requirements: a C++17 compiler, CMake 3.23+, and the Qt 6.9+ Widgets and Svg development packages.
+Clone with the submodule, or fetch it afterwards:
+
+```sh
+git clone --recursive <qcw-url>
+# or, in an existing checkout:
+git submodule update --init --recursive
+```
 
 ```sh
 cmake -S . -B build
 cmake --build build -j"$(nproc)"
 ```
 
-The build produces the library, the three demos and the tests under `build/bin`. A workbench
-application reads the bundled themes and translations from directories next to the executable,
-so link them once for the demo run (copy them instead on platforms without symbolic links):
-
-```sh
-ln -sfn "$PWD/themes" build/bin/themes
-ln -sfn "$PWD/translations" build/bin/translations
-```
+The build produces the library, `workbench_demo` and the tests under `build/bin`, and builds the
+bundled qcwdocking library from the submodule. The demo target stages the themes and both
+translation catalogs beside the executable, so a build-tree run finds them without extra
+copies.
 
 ```sh
 ./build/bin/workbench_demo
-./build/bin/folder_container_demo
-./build/bin/folder_renderer_demo
 ```
 
 `workbench_demo` is the application example: open a file in the project tree to get an editor in
 the shared folder and its symbols in the outline, switch perspectives from
 `Window > Perspective`, then close and restart — the layout, the open editors and the per-view
-state come back. The other two demos isolate the docking container and the folder renderer.
+state come back. The docking-only demos live in the qcw-docking repository.
+
+To link against an installed qcwdocking instead of the submodule, configure with
+`-DQCW_USE_SYSTEM_QCWDOCKING=ON` and make the package discoverable through
+`CMAKE_PREFIX_PATH`.
 
 The test suite and the API documentation are not part of that default build; enable them with
 `-DQCW_BUILD_TESTS=ON` and `-DQCW_BUILD_DOCS=ON` as described below.
@@ -148,7 +147,7 @@ tag is that number prefixed with `v`:
 ```cmake
 # Single source of truth for the library version; release tags are v${PROJECT_VERSION}.
 project(qcw
-    VERSION 1.0.0
+    VERSION 2.0.0
     LANGUAGES CXX
 )
 ```
@@ -159,9 +158,14 @@ three digits move like this:
 
 | Change | Version |
 |---|---|
-| A fix — a crash, a wrong result or a demo-only correction that leaves the public headers alone | patch, `1.0.x` |
-| An addition — a new class, method, signal, command or topic, or a deprecation that keeps the old API working; existing applications and compiled plugins keep working | minor, `1.x.0` |
+| A fix — a crash, a wrong result or a demo-only correction that leaves the public headers alone | patch, `2.0.x` |
+| An addition — a new class, method, signal, command or topic, or a deprecation that keeps the old API working; existing applications and compiled plugins keep working | minor, `2.x.0` |
 | A break — removing or renaming public API, changing a signature, behaviour or ownership contract, raising the minimum Qt version, or changing a plugin interface's vtable or IID | major, `x.0.0` |
+
+The docking widgets version independently, as **qcw-docking** 1.x. QCW 2.x requires a
+qcwdocking 1.x release; the installed `qcwConfig.cmake` asks for one through
+`find_dependency(qcwdocking 1.0 REQUIRED)`. A docking change that removes or changes its public
+API is a docking major release, and QCW then moves to a new major as well.
 
 Adding a virtual method to a plugin interface counts as a break even though it adds rather than
 removes: every plugin is a separate shared library, and an existing one does not implement the
@@ -768,8 +772,8 @@ Every registry and handler map in the framework follows one of three ownership m
 model of the class you are extending.
 
 - **Copies — owns nothing.** `QcwActionSetRegistry`, `QcwCommandRegistry`,
-  `QcwContributionRegistry`, `QcwSavedPerspectives`, `QcwSessionData`,
-  `QcwTabFolderRendererCreators`, `QcwThemeManager` and `QcwTopicRegistry` store values — a
+  `QcwContributionRegistry`, `QcwSavedPerspectives`, `QcwThemeManager` and `QcwTopicRegistry`
+  store values — a
   struct, a string, a path or a `std::function`. The caller may drop the original as soon as the
   call returns, and removal, where the class offers it, only forgets the copy. Most removal
   methods in this group exist for tests that share the process-wide instance and for
@@ -787,10 +791,11 @@ model of the class you are extending.
   is, and neither is ever deleted — not even at shutdown. A refused registration returns false
   and leaves the object with the caller, which must delete it. There is no removal API.
 
-`QcwTabPaneManager` is the one class that deletes what it tracks: a pane is reference-counted
-across the folders that show it and deleted when the last folder releases it. `QcwTopicService`
-is scope-owned: its lifetime belongs to the window or workbench that created it, not to a
-registry.
+The docking registries — `QcwTabPaneManager`, `QcwFloatingFolderMonitor`,
+`QcwFastViewStyleSettings` and `QcwTabFolderRendererCreators` — moved to qcw-docking and follow
+that repository's ownership rules; the pane manager is the one there that deletes what it
+tracks. `QcwTopicService` is scope-owned: its lifetime belongs to the window or workbench that
+created it, not to a registry.
 
 ## Preferences
 
@@ -837,7 +842,8 @@ edits are pushed into open views through `settingsChanged()`.
 
 The UI language is a setting on the built-in Appearance page, and `QcwTranslations` is the subsystem
 that applies it. A language is a set of catalogs that load together: `qtbase_<locale>.qm` for Qt's
-own strings and `qcw_<locale>.qm` for this library's and the demos'. QCW ships no copy of Qt's
+own strings, `qcw_<locale>.qm` for this library's and the demos', and `qcwdocking_<locale>.qm`
+for the docking widgets. QCW ships no copy of Qt's
 catalogs — it loads them from Qt's own translations directory, so they are always the ones belonging
 to the Qt the application links against rather than a snapshot someone committed. A base is taken
 from the first directory that has it, searched in this order: the installed `qcw/translations` data
@@ -845,6 +851,12 @@ directory, `translations` beside the executable, the directories an application 
 Qt's own. The repository ships `zh_CN` and `zh_TW`, each as a `.ts` source and a compiled `.qm`; the
 `.ts` files are deployed with the `.qm` so a catalog can be edited and recompiled next to the
 program.
+
+`QcwWorkbench::initialize()` registers the `qcwdocking` base before it applies the stored
+language, so the folder menus, tooltips and settings dialog follow the language selector like
+QCW's own chrome. The qcwdocking catalogs install into the same `share/qcw/translations`
+directory; a host that links the library through `find_package(qcwdocking)` only has to install
+its translations next to QCW's.
 
 **An application's own strings.** Register the base your catalogs use, and the directory holding
 them if they do not live beside the executable:
@@ -987,32 +999,29 @@ runs on the thread that logged, so a sink that touches widgets must marshal the 
 ## Utility widgets and services
 
 - `QcwSplitter` — a `QSplitter` whose handle paints a visible sunken groove, used by the
-  container and the preferences widget.
+  preferences widget.
 - `QcwTreeProxyModel` — recursive filter proxy for a `QAbstractItemModel` tree.
-- `QcwFilterableListWidget` — a list with a filter line edit.
 - `QcwFixedRowHeightItemDelegate` — a constant row height regardless of font or icon.
 - `QcwClickableLabel` — a `QLabel` that emits `clicked` and `doubleClicked` for left-button
   clicks, for captions that act as links.
 - `QcwPreferencesDialog`, `QcwThemeDialog`, `QcwNotificationBox` — the standard dialogs and card.
-- `QcwSavedPerspectives`, `QcwSessionData` — the saved layout store and an in-memory store
-  shared by the process.
+- `QcwSavedPerspectives` — the saved layout store.
 
 ## The demos
 
 | Demo | Read it for |
 |---|---|
 | [`workbench_demo`](examples/workbench_demo/README.md) | The whole framework assembled: workbench, window, perspectives, shared folder, plugin views, services, topics, preferences, logging and theming — including one plugin that adds no view at all |
-| [`folder_container_demo`](examples/folder_container_demo/README.md) | The docking container alone: creating and arranging folders, panes, the layout XML, and the container hosted by a plain `QDialog` |
-| [`folder_renderer_demo`](examples/folder_renderer_demo/README.md) | Replacing how tab folders are painted, without changing their behaviour |
 
-Each demo has its own README with the files to read and the gotchas that are not obvious from
-the API.
+The qcw-docking repository carries the two docking-only examples: `folder_container_demo` for
+creating and arranging folders, the layout XML and a container hosted by a plain `QDialog`, and
+`folder_renderer_demo` for replacing how tab folders are painted. Each demo has its own README
+with the files to read and the gotchas that are not obvious from the API.
 
 ## Repository layout
 
 ```
-src/core/           plugins, settings, logging, persistence, session data
-src/docking/        tab folders, containers, floating folders, fast-view tool bars, renderers
+src/core/           plugins, settings, logging, persistence
 src/notifications/  notification manager and cards
 src/preferences/    page contract, registry, dialog
 src/theming/        theme manager, widget themes, theme utilities and icons
@@ -1020,9 +1029,12 @@ src/widgets/        reusable widgets and models
 src/workbench/      workbench, window, perspective, view, creators, commands and their
                     handlers, contributions and action sets, service registry, topic service
                     and registry, window styler
+third_party/qcw-docking/
+                    the docking submodule: tab folders, containers, floating folders,
+                    fast-view tool bars, renderers
 themes/             QcwLight and QcwDark
 translations/       the language catalogs this project owns: qcw_<locale>.ts and .qm
-examples/           the three demos
+examples/           workbench_demo
 tests/              behaviour tests, run through CTest
 ```
 
@@ -1032,5 +1044,5 @@ comment that explains its contracts, ownership rules and the reasons behind them
 
 ## License
 
-BSD-3-Clause. See [LICENSE](LICENSE). Sources carry SPDX headers; the themes and translations are
-installed under `share/qcw`.
+BSD-3-Clause. See [LICENSE](LICENSE). Sources carry SPDX headers; QCW's themes and catalogs
+install under `share/qcw`, and the qcw-docking catalogs install alongside them.

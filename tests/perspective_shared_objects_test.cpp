@@ -511,7 +511,7 @@ void testSwitchWhileSharedFolderMinimized()
     }
 
     check(sharedGuard->state() == qcw::FolderState::Normal, "the second perspective gets a normal shared folder",
-          QStringLiteral("state=%1").arg(std::to_underlying(sharedGuard->state())));
+          QStringLiteral("state=%1").arg(static_cast<int>(sharedGuard->state())));
     check(sharedGuard->features().testFlag(qcw::Minimizable),
           "the second perspective can minimize the shared folder again");
     check(second->folderContainer()->isAncestorOf(sharedGuard),

@@ -1,9 +1,5 @@
 # tests/CMakeLists.txt
 
-qt_add_executable(tab_folder_right_widget_test
-    tab_folder_right_widget_test.cpp
-)
-
 qt_add_executable(view_top_right_tool_bar_test
     view_top_right_tool_bar_test.cpp
 )
@@ -96,26 +92,6 @@ qt_add_executable(language_change_test
     language_change_test.cpp
 )
 
-qt_add_executable(docking_drag_drop_test
-    docking_drag_drop_test.cpp
-)
-
-qt_add_executable(tab_folder_features_test
-    tab_folder_features_test.cpp
-)
-
-qt_add_executable(folder_maximize_test
-    folder_maximize_test.cpp
-)
-
-qt_add_executable(tab_folder_mouse_test
-    tab_folder_mouse_test.cpp
-)
-
-qt_add_executable(folder_restore_state_test
-    folder_restore_state_test.cpp
-)
-
 qt_add_executable(tree_proxy_model_test
     tree_proxy_model_test.cpp
 )
@@ -172,7 +148,6 @@ target_compile_definitions(translations_test PRIVATE
 )
 
 foreach(target IN ITEMS
-    tab_folder_right_widget_test
     view_top_right_tool_bar_test
     view_status_bar_widget_test
     plugin_loader_test
@@ -196,11 +171,6 @@ foreach(target IN ITEMS
     quit_protocol_test
     quit_without_windows_test
     language_change_test
-    docking_drag_drop_test
-    tab_folder_mouse_test
-    tab_folder_features_test
-    folder_maximize_test
-    folder_restore_state_test
     tree_proxy_model_test
     tree_model_test
     contribution_sorter_test
@@ -228,11 +198,3 @@ foreach(target IN ITEMS
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QCW_TEST_AUTOCLOSE=1"
     )
 endforeach()
-
-# The drag-and-drop test needs a real QDrag::exec() nested loop to make the
-# dragged folder the source QDropEvent::source() reports. The offscreen
-# plugin's QOffscreenDrag::drag() only returns IgnoreAction, while the
-# minimal plugin's QSimpleDrag runs the loop.
-set_tests_properties(docking_drag_drop_test PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=minimal;QCW_TEST_AUTOCLOSE=1"
-)

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 # Single source of truth for the library version; release tags are v${PROJECT_VERSION}.
 project(qcw
-    VERSION 1.0.0
+    VERSION 2.0.0
     LANGUAGES CXX
 )
 
@@ -9,7 +9,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -37,12 +37,24 @@ option(QCW_BUILD_DOCS "Build the API documentation target" OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
+find_package(Qt${QT_VERSION_MAJOR} 6.9 REQUIRED COMPONENTS
     Widgets
     Svg
 )
 
 include(GNUInstallDirs)
+
+option(QCW_USE_SYSTEM_QCWDOCKING "Use an installed qcwdocking instead of the bundled submodule" OFF)
+if(QCW_USE_SYSTEM_QCWDOCKING)
+    find_package(qcwdocking 1.0 REQUIRED)
+else()
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/qcw-docking/CMakeLists.txt")
+        message(FATAL_ERROR
+            "third_party/qcw-docking is missing. Run 'git submodule update --init --recursive', "
+            "or configure with -DQCW_USE_SYSTEM_QCWDOCKING=ON to use an installed qcwdocking.")
+    endif()
+    add_subdirectory(third_party/qcw-docking)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(examples)

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "QcwGlobal.h"
 #include "QcwTabFolderRenderer.h"
 #include <QList>
 

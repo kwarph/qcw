@@ -164,10 +164,11 @@ short answer to "what can a plugin do without a view?".
 
 ## What this demo does not cover
 
-The renderer-level customization lives in
-[`../folder_renderer_demo/README.md`](../folder_renderer_demo/README.md), and the raw container
-operations — folder minimize/restore, the layout XML written by hand — in
-[`../folder_container_demo/README.md`](../folder_container_demo/README.md). Here the workbench writes
+The renderer-level customization lives in the qcw-docking submodule at
+[`folder_renderer_demo`](../../third_party/qcw-docking/examples/folder_renderer_demo/README.md),
+and the raw container operations — folder minimize/restore, the layout XML written by hand — in
+[`folder_container_demo`](../../third_party/qcw-docking/examples/folder_container_demo/README.md).
+Here the workbench writes
 and reads that document for you, which is why no file in this directory mentions
 `QcwTabFolderContainer::saveState()`.
 

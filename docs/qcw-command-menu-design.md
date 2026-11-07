@@ -1085,7 +1085,8 @@ contributionRegistry->registerContribution({
 **PR 4: Clean up palette, documentation, Doxygen, README**
 
 - `QcwCommandPalette` reads only `QcwCommandRegistry`;
-- Update `workbench_demo`, `folder_container_demo`, `folder_renderer_demo`;
+- Update `workbench_demo` and the qcw-docking examples (`folder_container_demo`,
+  `folder_renderer_demo`);
 - Update README and Doxygen.
 
 ### 15.2 stateChanged() Refresh Granularity

@@ -22,9 +22,11 @@
 #include "QcwPreferencesManager.h"
 #include "QcwAppearancePreferencesPage.h"
 #include "QcwNotificationPreferencesPage.h"
-#include "QcwTabFolderRendererCreators.h"
 #include "QcwDefaultTabFolderRenderer.h"
 #include "QcwStyledTabFolderRenderer.h"
+#include "QcwTabFolderRenderer.h"
+#include "QcwTabFolderRendererCreators.h"
+#include "QcwThemeIcons.h"
 #include "QcwTranslations.h"
 #include "QcwWindowActionIds.h"
 #include <QAction>
@@ -253,6 +255,11 @@ bool QcwWorkbench::initialize(const QString& appName,
 
     themeManager->initialize();
     qInfo() << "Current theme:" << themeManager->currentTheme();
+
+    // The docking catalog ships with qcwdocking and installs beside qcw's own. Registering it
+    // here, before the stored language is applied, keeps folder strings translated on the first
+    // window.
+    QcwTranslations::registerCatalogBase(QStringLiteral("qcwdocking"));
 
     // Language, font and the followed system theme must be in place before plugins and
     // windows create their UI.
@@ -493,6 +500,25 @@ void QcwWorkbench::registerPreferencesPages()
 
 void QcwWorkbench::registerFolderRendererCreators()
 {
+    // The docking library falls back to the style's standard icons; the workbench keeps its
+    // palette-tinted set by providing them here, before any folder asks for one.
+    QcwTabFolderRenderer::setIconProvider(
+        [](QcwTabFolderRenderer::IconKind kind)
+        {
+            switch (kind)
+            {
+                case QcwTabFolderRenderer::IconKind::Maximize:
+                    return qcw::themeIcon(qcw::Icon::FolderMaximize);
+                case QcwTabFolderRenderer::IconKind::Restore:
+                    return qcw::themeIcon(qcw::Icon::FolderRestore);
+                case QcwTabFolderRenderer::IconKind::Minimize:
+                    return qcw::themeIcon(qcw::Icon::FolderMinimize);
+                case QcwTabFolderRenderer::IconKind::View:
+                    return qcw::themeIcon(qcw::Icon::View);
+            }
+            return QIcon();
+        });
+
     folderRendererCreators->registerCreator(QLatin1String("QcwDefaultTabFolderRenderer"),
                                             [](QcwTabFolder* folder) -> QcwTabFolderRenderer*
     {
