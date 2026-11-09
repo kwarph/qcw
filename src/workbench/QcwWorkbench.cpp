@@ -32,6 +32,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QStandardPaths>
 #include <QDir>
 #include <QEvent>
 #include <QFile>
@@ -218,23 +219,6 @@ bool QcwWorkbench::initialize(const QString& appName,
     QApplication::setApplicationVersion(appVersion);
     QApplication::setQuitOnLastWindowClosed(quitOnLastWindowClosed);
 
-    // QcwSettings defaults to the platform's native QSettings, which has no known file. The
-    // workbench is the kind of application that needs one, so it installs the INI provider;
-    // an application that installed a provider earlier keeps it, because initialize() honors
-    // only the first call.
-    QcwSettings::initialize([]()
-    {
-        return QSettings(QDir(QcwAppDirectories::configDirectory()).filePath(QStringLiteral("QcwSettings.ini")),
-                         QSettings::IniFormat);
-    });
-
-    const auto configPath = QcwAppDirectories::configDirectory();
-    if (!QDir().mkpath(configPath))
-    {
-        qWarning() << "QcwWorkbench::initialize(): cannot create the configuration directory" << configPath;
-        return false;
-    }
-
     const auto logPath = QcwAppDirectories::logDirectory();
     if (!QDir().mkpath(logPath))
     {
@@ -252,6 +236,31 @@ bool QcwWorkbench::initialize(const QString& appName,
     }
 
     QcwLogger::install();
+
+    // prepare configuration directory
+    if (!setConfigDirectory())
+    {
+        return false;
+    }
+
+    // QcwSettings defaults to the platform's native QSettings, which has no known file. The
+    // workbench is the kind of application that needs one, so it installs the INI provider;
+    // an application that installed a provider earlier keeps it, because initialize() honors
+    // only the first call.
+    QcwSettings::initialize([]()
+    {
+        return QSettings(QDir(QcwAppDirectories::configDirectory()).filePath(QStringLiteral("QcwSettings.ini")),
+                         QSettings::IniFormat);
+    });
+
+    const auto configPath = QcwAppDirectories::configDirectory();
+    if (!QDir().mkpath(configPath))
+    {
+        qWarning() << "QcwWorkbench::initialize(): cannot create the configuration directory" << configPath;
+        return false;
+    }
+
+    qDebug() << "The configuration directory:" << configPath;
 
     themeManager->initialize();
     qInfo() << "Current theme:" << themeManager->currentTheme();
@@ -349,6 +358,12 @@ bool QcwWorkbench::start()
     }
 
     return started;
+}
+
+bool QcwWorkbench::setConfigDirectory()
+{
+    return QcwAppDirectories::setConfigDirectory(
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
 }
 
 void QcwWorkbench::registerGlobalActions()
@@ -502,22 +517,21 @@ void QcwWorkbench::registerFolderRendererCreators()
 {
     // The docking library falls back to the style's standard icons; the workbench keeps its
     // palette-tinted set by providing them here, before any folder asks for one.
-    QcwTabFolderRenderer::setIconProvider(
-        [](QcwTabFolderRenderer::IconKind kind)
+    QcwTabFolderRenderer::setIconProvider([](QcwTabFolderRenderer::IconKind kind)
+    {
+        switch (kind)
         {
-            switch (kind)
-            {
-                case QcwTabFolderRenderer::IconKind::Maximize:
-                    return qcw::themeIcon(qcw::Icon::FolderMaximize);
-                case QcwTabFolderRenderer::IconKind::Restore:
-                    return qcw::themeIcon(qcw::Icon::FolderRestore);
-                case QcwTabFolderRenderer::IconKind::Minimize:
-                    return qcw::themeIcon(qcw::Icon::FolderMinimize);
-                case QcwTabFolderRenderer::IconKind::View:
-                    return qcw::themeIcon(qcw::Icon::View);
-            }
-            return QIcon();
-        });
+        case QcwTabFolderRenderer::IconKind::Maximize:
+            return qcw::themeIcon(qcw::Icon::FolderMaximize);
+        case QcwTabFolderRenderer::IconKind::Restore:
+            return qcw::themeIcon(qcw::Icon::FolderRestore);
+        case QcwTabFolderRenderer::IconKind::Minimize:
+            return qcw::themeIcon(qcw::Icon::FolderMinimize);
+        case QcwTabFolderRenderer::IconKind::View:
+            return qcw::themeIcon(qcw::Icon::View);
+        }
+        return QIcon();
+    });
 
     folderRendererCreators->registerCreator(QLatin1String("QcwDefaultTabFolderRenderer"),
                                             [](QcwTabFolder* folder) -> QcwTabFolderRenderer*

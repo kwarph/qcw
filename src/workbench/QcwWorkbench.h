@@ -183,6 +183,19 @@ signals:
 
 protected:
     /**
+     * @brief Selects the configuration directory before QcwSettings is installed.
+     *
+     * @details Called once from initialize(), after the application/organization names are
+     * set and after the log directory is prepared, but before the QcwSettings INI provider is
+     * installed. The default uses QStandardPaths::AppConfigLocation. A derived application may
+     * override it to prompt for a workspace, create its directory and acquire a process lock
+     * first; returning false aborts initialize().
+     *
+     * @return True when a configuration directory was selected; false to abort startup.
+     */
+    virtual bool setConfigDirectory();
+
+    /**
      * @brief Creates one empty workbench window.
      * @return The new window, or nullptr when the application cannot create one; the caller
      *         then skips that session entry and logs a warning.

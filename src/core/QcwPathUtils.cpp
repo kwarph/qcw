@@ -10,12 +10,42 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+
 /// Settings key holding the path the last dialog started in; both QcwLastVisitPath entries use it.
-static const QLatin1String kLastVisitPathKey("misc/openFile/lastPath");
+const QLatin1String kLastVisitPathKey("misc/openFile/lastPath");
+
+QString configDir;
+
+} // namespace
+
+bool QcwAppDirectories::setConfigDirectory(const QString& directory)
+{
+    static bool configDirSet = false;
+    if (configDirSet)
+    {
+        qWarning() << "QcwAppDirectories::setConfigDirectory(): already set to" << configDir;
+        return false;
+    }
+
+    const QString requested = directory.isEmpty()
+                                  ? QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+                                  : directory;
+    if (requested.isEmpty() || !QDir().mkpath(requested))
+    {
+        qWarning() << "QcwAppDirectories::setConfigDirectory(): cannot create" << requested;
+        return false;
+    }
+
+    configDir = QDir { requested }.absolutePath();
+    configDirSet = true;
+    return true;
+}
 
 QString QcwAppDirectories::configDirectory()
 {
-    return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    return !configDir.isEmpty() ? configDir : QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 }
 
 QString QcwAppDirectories::logDirectory()

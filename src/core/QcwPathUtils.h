@@ -23,6 +23,24 @@ QT_BEGIN_NAMESPACE
  */
 struct QCW_EXPORT QcwAppDirectories
 {
+    /**
+     * @brief Sets the configuration directory for this process, at most once.
+     *
+     * @details QcwWorkbench calls this from initialize() before it installs the QcwSettings
+     * INI provider and before any window or perspective state is read. A command-line
+     * application can therefore choose a workspace-specific directory first; everything that
+     * uses configDirectory() afterwards (QcwSettings, QcwWorkbench.xml, QcwWindow-*.xml and
+     * perspectives/) lands in that directory.
+     *
+     * The directory is created when it does not exist. An empty path selects the platform
+     * default. A second call is refused: changing the directory while a QcwSettings provider
+     * is installed would split one process across two configuration trees.
+     *
+     * @return True when this call selected the directory; false when it was already set or
+     *         could not be created.
+     */
+    static bool setConfigDirectory(const QString& directory);
+
     /// Directory of the persisted user data: window and perspective state, and the INI file
     /// that QcwWorkbench installs as its settings provider.
     static QString configDirectory();
