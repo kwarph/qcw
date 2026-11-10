@@ -10,6 +10,7 @@
 #include "QcwSettings.h"
 #include "QcwPathUtils.h"
 #include "QcwOverlayScrollArea.h"
+#include "QcwOverlayScrollBarUtils.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QEvent>
@@ -130,7 +131,6 @@ public:
     void showPage(const QModelIndex& index);
     void clearPage();
     void selectFirstPage();
-    void syncFilterWidth();
     void relabelTreeItems(const QModelIndex& parent);
 
 public:
@@ -297,19 +297,8 @@ void QcwPreferencesWidget::showEvent(QShowEvent* event)
     }
 
     impl->splitter->setSizes({ 240, qMax(0, impl->splitter->width() - 240) });
-    impl->syncFilterWidth();
 
     impl->selectFirstPage();
-}
-
-bool QcwPreferencesWidget::eventFilter(QObject* watched, QEvent* event)
-{
-    if (watched == impl->treeView && event->type() == QEvent::Resize)
-    {
-        impl->syncFilterWidth();
-    }
-
-    return QWidget::eventFilter(watched, event);
 }
 
 void QcwPreferencesWidget::changeEvent(QEvent* event)
@@ -351,50 +340,29 @@ void QcwPreferencesWidgetPrivate::setupUi()
 {
     auto mainLayout = new QVBoxLayout(owner);
     mainLayout->setSpacing(0);
-    mainLayout->setObjectName("verticalLayout");
     mainLayout->setContentsMargins(0, 0, 0, 0);
-
-    auto filterLayout = new QHBoxLayout();
-    filterLayout->setSpacing(0);
-    filterLayout->setObjectName("horizontalLayout");
-    filterLayout->setContentsMargins(6, 6, 6, 6);
-
-    lineEdit = new QLineEdit(owner);
-    lineEdit->setObjectName("lineEdit");
-    lineEdit->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
-    lineEdit->setClearButtonEnabled(true);
-
-    filterLayout->addWidget(lineEdit);
-    filterLayout->addSpacing(6);
-
-    auto verticalLine = new QFrame(owner);
-    verticalLine->setObjectName("line");
-    verticalLine->setFrameShape(QFrame::Shape::VLine);
-    verticalLine->setFrameShadow(QFrame::Shadow::Sunken);
-    filterLayout->addWidget(verticalLine);
-
-    filterLayout->addSpacing(6);
-
-    pathLabel = new QLabel(owner);
-    pathLabel->setObjectName("label");
-    pathLabel->setTextFormat(Qt::RichText);
-    pathLabel->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
-    filterLayout->addWidget(pathLabel);
-
-    mainLayout->addLayout(filterLayout);
-
-    auto horizontalLine = new QFrame(owner);
-    horizontalLine->setObjectName("line_2");
-    horizontalLine->setFrameShape(QFrame::Shape::HLine);
-    horizontalLine->setFrameShadow(QFrame::Shadow::Sunken);
-    mainLayout->addWidget(horizontalLine);
 
     splitter = new QcwSplitter(owner);
     splitter->setObjectName("splitter");
     splitter->setOrientation(Qt::Orientation::Horizontal);
-    splitter->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
 
-    treeView = new QTreeView(splitter);
+    auto widget = new QWidget(splitter);
+    auto vLayout = new QVBoxLayout(widget);
+    vLayout->setSpacing(0);
+    vLayout->setContentsMargins(0, 0, 0, 0);
+    auto hLayout = new QHBoxLayout();
+    hLayout->setContentsMargins(6, 6, 6, 6);
+
+    lineEdit = new QLineEdit(widget);
+    lineEdit->setObjectName("lineEdit");
+    lineEdit->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
+    lineEdit->setClearButtonEnabled(true);
+
+    hLayout->addWidget(lineEdit);
+
+    vLayout->addLayout(hLayout);
+
+    treeView = new QTreeView(widget);
     treeView->setObjectName("treeView");
     treeView->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Expanding);
     treeView->setFrameShape(QFrame::Shape::NoFrame);
@@ -404,6 +372,8 @@ void QcwPreferencesWidgetPrivate::setupUi()
     treeView->setUniformRowHeights(true);
     treeView->installEventFilter(owner);
 
+    attachOverlayScrollBar(treeView, widget);
+
     model = new QStandardItemModel(owner);
     proxyModel = new QcwPreferencesProxyModel(owner);
     proxyModel->setSourceModel(model);
@@ -411,20 +381,47 @@ void QcwPreferencesWidgetPrivate::setupUi()
     treeView->setModel(proxyModel);
     treeView->setItemDelegate(new QcwFixedRowHeightItemDelegate(treeView));
 
-    splitter->addWidget(treeView);
+    vLayout->addWidget(treeView);
 
-    rightPanel = new QcwOverlayScrollArea(splitter);
+    splitter->addWidget(widget);
+
+    auto widget1 = new QWidget(splitter);
+    auto vLayout2 = new QVBoxLayout(widget1);
+    vLayout2->setSpacing(0);
+    vLayout2->setContentsMargins(0, 0, 0, 0);
+    auto hLayout2 = new QHBoxLayout();
+    hLayout2->setContentsMargins(6, 6, 6, 3);
+    pathLabel = new QLabel(widget1);
+    pathLabel->setObjectName("pathLabel");
+    QSizePolicy sizePolicy2(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
+    sizePolicy2.setHorizontalStretch(0);
+    sizePolicy2.setVerticalStretch(0);
+    sizePolicy2.setHeightForWidth(pathLabel->sizePolicy().hasHeightForWidth());
+    pathLabel->setSizePolicy(sizePolicy2);
+    pathLabel->setFixedHeight(lineEdit->height());
+
+    hLayout2->addWidget(pathLabel);
+
+    vLayout2->addLayout(hLayout2);
+
+    auto line = new QFrame(widget1);
+    line->setObjectName("line");
+    line->setFrameShape(QFrame::Shape::HLine);
+    line->setFrameShadow(QFrame::Shadow::Sunken);
+
+    vLayout2->addWidget(line);
+
+    rightPanel = new QcwOverlayScrollArea(widget1);
     rightPanel->setObjectName("rightPanel");
     rightPanel->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
     rightPanel->setWidgetResizable(true);
     rightPanel->setFrameShape(QFrame::NoFrame);
 
-    splitter->addWidget(rightPanel);
+    vLayout2->addWidget(rightPanel);
+
+    splitter->addWidget(widget1);
 
     mainLayout->addWidget(splitter);
-
-    splitter->setStretchFactor(0, 0);
-    splitter->setStretchFactor(1, 1);
 
     QObject::connect(lineEdit, &QLineEdit::textChanged, [this](const QString& text)
     {
@@ -583,13 +580,6 @@ void QcwPreferencesWidgetPrivate::selectFirstPage()
     {
         treeView->setCurrentIndex(index);
     }
-}
-
-void QcwPreferencesWidgetPrivate::syncFilterWidth()
-{
-    // The filter row is inset by 6 px on each side, so aligning the field with the tree
-    // column means subtracting both insets from the tree's width.
-    lineEdit->setFixedWidth(qMax(0, treeView->width() - 6 * 2));
 }
 
 QT_END_NAMESPACE

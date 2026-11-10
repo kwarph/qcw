@@ -83,9 +83,6 @@ protected:
      */
     void changeEvent(QEvent* event) override;
 
-    /// Keeps the filter field as wide as the tree column when the splitter resizes it.
-    bool eventFilter(QObject* watched, QEvent* event) override;
-
 private:
     QcwPreferencesWidgetPrivate* impl;
 };
