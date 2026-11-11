@@ -30,6 +30,10 @@ class QcwNotificationPreferencesPagePrivate;
  * show the effect of the settings above. The timeout control is in whole seconds and maps to
  * the manager's timeout in milliseconds; 0 keeps a card open until it is closed.
  *
+ * @note This page is process-wide on purpose: QcwNotificationManager owns the values and
+ * persists them through QcwSettings, so the page ignores the provider a scoped
+ * QcwPreferencesWidget installs. Keep it out of a widget bound to a project store.
+ *
  * @note On Wayland the compositor, not the application, places top-level windows, so the corner
  * setting cannot be honoured. The page shows a notice next to the settings when it runs under
  * Wayland; Windows and X11 sessions do not see it.

@@ -406,7 +406,9 @@ void QcwWorkbench::registerGlobalActions()
             return;
         }
 
-        impl->preferencesDialog = new QcwPreferencesDialog;
+        // Empty provider: this dialog edits the process-wide store. A project-scoped dialog
+        // passes its own pages and provider instead.
+        impl->preferencesDialog = new QcwPreferencesDialog { preferencesManager->allPages(), {} };
         impl->preferencesDialog->setAttribute(Qt::WA_DeleteOnClose);
         impl->preferencesDialog->resize(900, 640);
         impl->preferencesDialog->show();

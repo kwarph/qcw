@@ -6,7 +6,6 @@
 #include "DemoFontPreferenceRow.h"
 #include "DemoFonts.h"
 #include "DemoServices.h"
-#include "QcwSettings.h"
 
 #include <QCheckBox>
 #include <QEvent>
@@ -21,17 +20,15 @@ constexpr QLatin1String FontKey { "font" };
 } // namespace
 
 TextEditorAppearancePreferencesPage::TextEditorAppearancePreferencesPage(QWidget* parent) :
-    QcwPreferencesPage { parent },
-    mShowLineNumbers { new QCheckBox { this } }
+    QcwPreferencesPage { parent }, mShowLineNumbers { new QCheckBox { this } }
 {
     auto* layout = new QFormLayout { this };
     layout->addRow(QString(), mShowLineNumbers);
 
-    mFontRow = std::make_unique<demo::FontPreferenceRow>(this, layout, QString {},
-                                                          [this](const QFont&)
-                                                          {
-                                                              writeSettings();
-                                                          });
+    mFontRow = std::make_unique<demo::FontPreferenceRow>(this, layout, QString {}, [this](const QFont&)
+    {
+        writeSettings();
+    });
 
     connect(mShowLineNumbers, &QCheckBox::toggled, this, &TextEditorAppearancePreferencesPage::writeSettings);
 
@@ -68,13 +65,14 @@ QString TextEditorAppearancePreferencesPage::name() const
 
 bool TextEditorAppearancePreferencesPage::matchesFilter(const QString& filterText) const
 {
-    const QString searchable = QStringList {
-        name(),
-        mShowLineNumbers->text(),
-        tr("Font"),
-        tr("Monospace"),
-    }
-                                   .join(QLatin1Char(' '));
+    const QString searchable =
+        QStringList {
+            name(),
+            mShowLineNumbers->text(),
+            tr("Font"),
+            tr("Monospace"),
+        }
+            .join(QLatin1Char(' '));
 
     return searchable.contains(filterText, Qt::CaseInsensitive);
 }
@@ -92,12 +90,12 @@ void TextEditorAppearancePreferencesPage::restoreDefaults()
 
 void TextEditorAppearancePreferencesPage::loadSettings()
 {
-    QSettings settings = QcwSettings::get();
-    settings.beginGroup(settingsGroup());
-    const bool showLineNumbers = settings.value(QString(ShowLineNumberKey), true).toBool();
-    const bool hasFont = settings.contains(QString(FontKey));
-    const QFont storedFont = hasFont ? settings.value(QString(FontKey)).value<QFont>() : QFont();
-    settings.endGroup();
+    QSettings settingsObj = settings();
+    settingsObj.beginGroup(settingsGroup());
+    const bool showLineNumbers = settingsObj.value(QString(ShowLineNumberKey), true).toBool();
+    const bool hasFont = settingsObj.contains(QString(FontKey));
+    const QFont storedFont = hasFont ? settingsObj.value(QString(FontKey)).value<QFont>() : QFont();
+    settingsObj.endGroup();
 
     // A missing key means first use, where the editor starts from the system's fixed font.
     const QFont font = hasFont ? storedFont : demo::defaultMonospaceFont();
@@ -109,11 +107,11 @@ void TextEditorAppearancePreferencesPage::loadSettings()
 
 void TextEditorAppearancePreferencesPage::writeSettings()
 {
-    QSettings settings = QcwSettings::get();
-    settings.beginGroup(settingsGroup());
-    settings.setValue(QString(ShowLineNumberKey), mShowLineNumbers->isChecked());
-    settings.setValue(QString(FontKey), mFontRow->font());
-    settings.endGroup();
+    QSettings settingsObj = settings();
+    settingsObj.beginGroup(settingsGroup());
+    settingsObj.setValue(QString(ShowLineNumberKey), mShowLineNumbers->isChecked());
+    settingsObj.setValue(QString(FontKey), mFontRow->font());
+    settingsObj.endGroup();
 
     emit settingsChanged();
 }

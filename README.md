@@ -799,9 +799,11 @@ created it, not to a registry.
 
 ## Preferences
 
-A preferences page is a widget that owns one `QSettings` group. `loadSettings()` is called every
-time the page is shown and must not write; `restoreDefaults()` backs the dialog button; changes
-apply as the user edits, with no Apply/Cancel step.
+A preferences page is a widget that owns one `QSettings` group. It reads and writes that group
+through `settings()`, which returns the store of the widget showing the page (or the
+process-wide store when there is no such widget). `loadSettings()` is called every time the page
+is shown and must not write; `restoreDefaults()` backs the dialog button; changes apply as the
+user edits, with no Apply/Cancel step.
 
 ```cpp
 class MyPreferencesPage : public QcwPreferencesPage
@@ -832,11 +834,34 @@ void MyViewCreator::doRegisterContributions()
 ```
 
 `QcwWorkbench` registers the built-in Appearance page (theme, UI language, UI font) and
-Notifications page. Settings are read with `QcwSettings::get()`, which returns a fresh
-`QSettings` by value; `QcwWorkbench::initialize()` installs an INI provider under the
+Notifications page. A page reads and writes through `QcwPreferencesPage::settings()`, which
+returns a fresh `QSettings` by value; without an installed provider it falls back to
+`QcwSettings::get()`. `QcwWorkbench::initialize()` installs an INI provider under the
 application's config directory unless the application installed one first. The demo's
 `TextEditorAppearancePreferencesPage` and `LogViewAppearancePreferencesPage` show a page whose
 edits are pushed into open views through `settingsChanged()`.
+
+A page does not have to live in the global registry. `QcwPreferencesWidget` and
+`QcwPreferencesDialog` take the page map and a `QcwSettingsProvider`, so one project can show
+its own pages and edit its own INI file while the global dialog keeps using the process-wide
+store:
+
+```cpp
+auto* page = new ProjectPreferencesPage;
+QMap<QString, QcwPreferencesPage*> pages { { page->settingsGroup(), page } };
+QcwSettingsProvider projectStore = [path = projectSettingsPath]()
+{
+    return QSettings(path, QSettings::IniFormat);
+};
+
+auto* dialog = new QcwPreferencesDialog(pages, projectStore);
+// The dialog borrows the pages: delete `page` after the dialog is gone.
+```
+
+Pass an empty provider (`{}`) to keep the process-wide store. A page holds its provider for
+life, so give each scope its own page instances instead of sharing one page between scopes.
+The built-in Appearance page is deliberately process-wide and ignores a scoped provider,
+because the theme, language and font it edits apply to the whole process.
 
 ## Language
 

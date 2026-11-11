@@ -6,7 +6,6 @@
 #include "DemoFontPreferenceRow.h"
 #include "DemoFonts.h"
 #include "DemoServices.h"
-#include "QcwSettings.h"
 
 #include <QEvent>
 #include <QFormLayout>
@@ -22,11 +21,10 @@ LogViewAppearancePreferencesPage::LogViewAppearancePreferencesPage(QWidget* pare
 {
     auto* layout = new QFormLayout { this };
 
-    mFontRow = std::make_unique<demo::FontPreferenceRow>(this, layout, QString {},
-                                                          [this](const QFont&)
-                                                          {
-                                                              writeSettings();
-                                                          });
+    mFontRow = std::make_unique<demo::FontPreferenceRow>(this, layout, QString {}, [this](const QFont&)
+    {
+        writeSettings();
+    });
 
     retranslateUi();
 }
@@ -60,12 +58,13 @@ QString LogViewAppearancePreferencesPage::name() const
 
 bool LogViewAppearancePreferencesPage::matchesFilter(const QString& filterText) const
 {
-    const QString searchable = QStringList {
-        name(),
-        tr("Font"),
-        tr("Monospace"),
-    }
-                                   .join(QLatin1Char(' '));
+    const QString searchable =
+        QStringList {
+            name(),
+            tr("Font"),
+            tr("Monospace"),
+        }
+            .join(QLatin1Char(' '));
 
     return searchable.contains(filterText, Qt::CaseInsensitive);
 }
@@ -78,11 +77,11 @@ void LogViewAppearancePreferencesPage::restoreDefaults()
 
 void LogViewAppearancePreferencesPage::loadSettings()
 {
-    QSettings settings = QcwSettings::get();
-    settings.beginGroup(settingsGroup());
-    const bool hasFont = settings.contains(QString(FontKey));
-    const QFont storedFont = hasFont ? settings.value(QString(FontKey)).value<QFont>() : QFont();
-    settings.endGroup();
+    QSettings settingsObj = settings();
+    settingsObj.beginGroup(settingsGroup());
+    const bool hasFont = settingsObj.contains(QString(FontKey));
+    const QFont storedFont = hasFont ? settingsObj.value(QString(FontKey)).value<QFont>() : QFont();
+    settingsObj.endGroup();
 
     // A missing key means first use, where the log starts from the system's fixed font.
     mFontRow->setFont(hasFont ? storedFont : demo::defaultMonospaceFont());
@@ -90,10 +89,10 @@ void LogViewAppearancePreferencesPage::loadSettings()
 
 void LogViewAppearancePreferencesPage::writeSettings()
 {
-    QSettings settings = QcwSettings::get();
-    settings.beginGroup(settingsGroup());
-    settings.setValue(QString(FontKey), mFontRow->font());
-    settings.endGroup();
+    QSettings settingsObj = settings();
+    settingsObj.beginGroup(settingsGroup());
+    settingsObj.setValue(QString(FontKey), mFontRow->font());
+    settingsObj.endGroup();
 
     emit settingsChanged();
 }

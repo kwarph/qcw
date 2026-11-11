@@ -35,8 +35,8 @@ public:
 void QcwPreferencesDialogPrivate::retranslateUi()
 {
     restoreButton->setText(QCoreApplication::translate("QcwPreferencesDialog", "&Restore Defaults"));
-    restoreButton->setToolTip(
-        QCoreApplication::translate("QcwPreferencesDialog", "Restore the settings on this page to their default values"));
+    restoreButton->setToolTip(QCoreApplication::translate("QcwPreferencesDialog",
+                                                          "Restore the settings on this page to their default values"));
 
     exportButton->setText(QCoreApplication::translate("QcwPreferencesDialog", "&Export"));
     exportButton->setToolTip(QCoreApplication::translate("QcwPreferencesDialog", "Export all settings to a file"));
@@ -47,7 +47,9 @@ void QcwPreferencesDialogPrivate::retranslateUi()
     owner->setWindowTitle(QCoreApplication::translate("QcwPreferencesDialog", "Preferences"));
 }
 
-QcwPreferencesDialog::QcwPreferencesDialog(QWidget* parent) :
+QcwPreferencesDialog::QcwPreferencesDialog(const QMap<QString, QcwPreferencesPage*>& pages,
+                                           QcwSettingsProvider settingsProvider,
+                                           QWidget* parent) :
     QDialog { parent }, impl { new QcwPreferencesDialogPrivate { this } }
 {
     auto verticalLayout = new QVBoxLayout(this);
@@ -55,7 +57,7 @@ QcwPreferencesDialog::QcwPreferencesDialog(QWidget* parent) :
     verticalLayout->setSpacing(0);
     verticalLayout->setObjectName("verticalLayout");
 
-    auto widget = new QcwPreferencesWidget(this);
+    auto widget = new QcwPreferencesWidget(pages, settingsProvider, this);
     verticalLayout->addWidget(widget);
 
     auto line = new QFrame(this);

@@ -17,9 +17,14 @@ class QcwPreferencesPage;
  *
  * @details Plugins register their pages here from QcwPlugin::doRegisterContributions(),
  * which QcwPluginLoader calls once the plugin is registered. Applications may also call
- * registerPage() directly. QcwPreferencesWidget reads the registry when it builds its tree
- * and when the selection changes, so pages must be registered before the widget is shown;
- * typically that means before any preferences window is opened.
+ * registerPage() directly. The registry owns pages but does not display them: a host passes
+ * allPages() (or a subset) to QcwPreferencesWidget, which copies the map when it is
+ * constructed. Register pages before building that widget; typically that means before any
+ * preferences window is opened.
+ *
+ * The registry is for the process-wide preferences. A project that keeps its own settings can
+ * build its pages directly and hand them, with its own provider, to QcwPreferencesWidget
+ * without registering them here; those pages then belong to that caller, not to the registry.
  *
  * The registry owns the pages it accepts. Registration transfers ownership: a page that
  * registerPage() accepts belongs to the registry from then on and lives until the process

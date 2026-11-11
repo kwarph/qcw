@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "QcwPreferencesWidget.h"
-#include "QcwPreferencesManager.h"
 #include "QcwPreferencesPage.h"
+#include "QcwSettings.h"
 #include "QcwSplitter.h"
 #include "QcwTreeProxyModel.h"
 #include "QcwFixedRowHeightItemDelegate.h"
-#include "QcwSettings.h"
 #include "QcwPathUtils.h"
 #include "QcwOverlayScrollArea.h"
 #include "QcwOverlayScrollBarUtils.h"
@@ -64,6 +63,25 @@ bool isLiveSettingsFile(const QSettings& settings, const QString& filePath)
     return isSameFile(liveInfo.absoluteFilePath(), filePath);
 }
 
+/**
+ * @brief Path of the backup file that importSettings() writes before replacing @p settings.
+ *
+ * @details The snapshot belongs beside the store it backs up, which keeps two scopes apart: a
+ * project INI and the global QcwSettings.ini must not overwrite each other's backup. A store
+ * without a file — the Windows registry is the normal case — falls back to the per-user config
+ * directory, where the workbench's own INI lives.
+ */
+QString backupFilePath(const QSettings& settings)
+{
+    const QFileInfo liveInfo(settings.fileName());
+    if (liveInfo.isAbsolute())
+    {
+        return liveInfo.absoluteFilePath() + QStringLiteral(".bak");
+    }
+
+    return QDir(QcwAppDirectories::configDirectory()).filePath(QStringLiteral("QcwSettings.ini.bak"));
+}
+
 /// Writes every key of @p source to @p targetPath as an INI file.
 bool writeSettingsSnapshot(const QSettings& source, const QString& targetPath)
 {
@@ -81,28 +99,6 @@ bool writeSettingsSnapshot(const QSettings& source, const QString& targetPath)
     return target.status() == QSettings::NoError;
 }
 
-/// Depth-first search for the first row of @p model that has a page.
-QModelIndex firstPageIndex(const QAbstractItemModel& model, const QModelIndex& parent = QModelIndex())
-{
-    for (int row = 0, rows = model.rowCount(parent); row < rows; ++row)
-    {
-        const auto index = model.index(row, 0, parent);
-
-        // Intermediate groups have no page of their own, so the plain first row may be one.
-        if (preferencesManager->getPage(index.data(Qt::UserRole).toString()))
-        {
-            return index;
-        }
-
-        if (auto descendant = firstPageIndex(model, index); descendant.isValid())
-        {
-            return descendant;
-        }
-    }
-
-    return {};
-}
-
 } // namespace
 
 // -----------------------------------------------------------------------------
@@ -110,10 +106,13 @@ QModelIndex firstPageIndex(const QAbstractItemModel& model, const QModelIndex& p
 class QcwPreferencesProxyModel : public QcwTreeProxyModel
 {
 public:
-    explicit QcwPreferencesProxyModel(QObject* parent = nullptr);
+    explicit QcwPreferencesProxyModel(QcwPreferencesWidgetPrivate* impl, QObject* parent = nullptr);
 
 protected:
     bool matchesAdditionalConditions(const QModelIndex& sourceIndex, const QString& filterText) const override;
+
+private:
+    QcwPreferencesWidgetPrivate* preferencesWidgetPimpl;
 };
 
 // -----------------------------------------------------------------------------
@@ -133,8 +132,12 @@ public:
     void selectFirstPage();
     void relabelTreeItems(const QModelIndex& parent);
 
+    QModelIndex firstPageIndex(const QAbstractItemModel& model, const QModelIndex& parent = QModelIndex());
+
 public:
     QcwPreferencesWidget* owner;
+    QMap<QString, QcwPreferencesPage*> pages;
+    QcwSettingsProvider settingsProvider;
     QLineEdit* lineEdit { nullptr };
     QLabel* pathLabel { nullptr };
     QSplitter* splitter { nullptr };
@@ -147,17 +150,42 @@ public:
 
 // -----------------------------------------------------------------------------
 
-QcwPreferencesWidget::QcwPreferencesWidget(QWidget* parent) :
+QcwPreferencesWidget::QcwPreferencesWidget(const QMap<QString, QcwPreferencesPage*>& pages,
+                                           QcwSettingsProvider settingsProvider,
+                                           QWidget* parent) :
     QWidget { parent }, impl { new QcwPreferencesWidgetPrivate { this } }
 {
+    // An empty provider is the documented shorthand for the process-wide store. Resolve it
+    // here, once, so export/import and every page below see the same non-empty provider.
+    if (!settingsProvider)
+    {
+        settingsProvider = []()
+        {
+            return QcwSettings::get();
+        };
+    }
+
+    impl->pages = pages;
+    impl->settingsProvider = settingsProvider;
+
+    // Pages read their values through QcwPreferencesPage::settings(). Installing the provider
+    // here, before the first page is shown, binds them to the same store export/import use.
+    for (auto page : impl->pages)
+    {
+        if (page)
+        {
+            page->setSettingsProvider(settingsProvider);
+        }
+    }
     impl->setupUi();
 }
 
 QcwPreferencesWidget::~QcwPreferencesWidget()
 {
-    // Pages belong to QcwPreferencesManager, not to this widget: detach the current one so
-    // the scroll area does not delete it with the rest of its children. takeWidget()
-    // reparents the page to nullptr, which also hides it.
+    // Pages are borrowed, not owned by this widget (they belong to the caller, usually
+    // QcwPreferencesManager): detach the current one so the scroll area does not delete it
+    // with the rest of its children. takeWidget() reparents the page to nullptr, which also
+    // hides it.
     impl->rightPanel->takeWidget();
 
     delete impl;
@@ -178,7 +206,9 @@ void QcwPreferencesWidget::exportSettings()
         return;
     }
 
-    auto currentSettings = QcwSettings::get();
+    // Export the store this widget was built for, which is not necessarily the process-wide
+    // one: a project preferences window must not copy the global configuration by mistake.
+    auto currentSettings = impl->settingsProvider();
     if (isLiveSettingsFile(currentSettings, outputFile))
     {
         QMessageBox::warning(this, tr("Export Settings Failed"),
@@ -223,7 +253,7 @@ void QcwPreferencesWidget::importSettings()
         return;
     }
 
-    auto currentSettings = QcwSettings::get();
+    auto currentSettings = impl->settingsProvider();
     if (isLiveSettingsFile(currentSettings, inputFile))
     {
         QMessageBox::warning(this, tr("Import Settings Failed"),
@@ -231,11 +261,11 @@ void QcwPreferencesWidget::importSettings()
         return;
     }
 
-    // Import replaces the live configuration, so anything the file does not contain is about
-    // to disappear. Keep a snapshot first: it covers keys whose owner never takes part in the
-    // import, like plugin settings or keys added by a newer application version.
-    const QString backupFile =
-        QDir(QcwAppDirectories::configDirectory()).filePath(QStringLiteral("QcwSettings.ini.bak"));
+    // Import replaces this widget's store, so anything the file does not contain is about to
+    // disappear. Keep a snapshot first: it covers keys whose owner never takes part in the
+    // import, like plugin settings or keys added by a newer application version. The backup
+    // sits beside the store, so a project import cannot overwrite the global backup.
+    const QString backupFile = backupFilePath(currentSettings);
     if (!writeSettingsSnapshot(currentSettings, backupFile))
     {
         QMessageBox::warning(
@@ -268,10 +298,14 @@ void QcwPreferencesWidget::importSettings()
     QcwLastVisitPath::set(inputFile);
 
     // The store changed behind the pages' backs: show the imported values and re-evaluate the
-    // filter, because page contents can depend on them.
-    for (auto* page : preferencesManager->allPages())
+    // filter, because page contents can depend on them. Only this widget's pages use this
+    // store, so no other page needs reloading.
+    for (auto* page : impl->pages)
     {
-        page->loadSettings();
+        if (page)
+        {
+            page->loadSettings();
+        }
     }
     impl->proxyModel->invalidate();
     impl->selectFirstPage();
@@ -313,8 +347,8 @@ void QcwPreferencesWidget::changeEvent(QEvent* event)
 
 // -----------------------------------------------------------------------------
 
-QcwPreferencesProxyModel::QcwPreferencesProxyModel(QObject* parent) :
-    QcwTreeProxyModel { parent }
+QcwPreferencesProxyModel::QcwPreferencesProxyModel(QcwPreferencesWidgetPrivate* impl, QObject* parent) :
+    QcwTreeProxyModel { parent }, preferencesWidgetPimpl { impl }
 {
 }
 
@@ -322,7 +356,7 @@ bool QcwPreferencesProxyModel::matchesAdditionalConditions(const QModelIndex& so
                                                            const QString& filterText) const
 {
     const auto settingsGroup = sourceIndex.data(Qt::UserRole).toString();
-    if (auto* page = preferencesManager->getPage(settingsGroup))
+    if (auto* page = preferencesWidgetPimpl->pages.value(settingsGroup))
     {
         return page->matchesFilter(filterText);
     }
@@ -375,7 +409,7 @@ void QcwPreferencesWidgetPrivate::setupUi()
     attachOverlayScrollBar(treeView, widget);
 
     model = new QStandardItemModel(owner);
-    proxyModel = new QcwPreferencesProxyModel(owner);
+    proxyModel = new QcwPreferencesProxyModel(this, owner);
     proxyModel->setSourceModel(model);
 
     treeView->setModel(proxyModel);
@@ -457,7 +491,7 @@ void QcwPreferencesWidgetPrivate::relabelTreeItems(const QModelIndex& parent)
     for (int row = 0, rows = model->rowCount(parent); row < rows; ++row)
     {
         const auto index = model->index(row, 0, parent);
-        if (auto* page = preferencesManager->getPage(index.data(Qt::UserRole).toString()))
+        if (auto* page = pages.value(index.data(Qt::UserRole).toString()))
         {
             model->itemFromIndex(index)->setText(page->name());
         }
@@ -466,12 +500,41 @@ void QcwPreferencesWidgetPrivate::relabelTreeItems(const QModelIndex& parent)
     }
 }
 
+/// Depth-first search for the first row of @p model that has a page.
+QModelIndex QcwPreferencesWidgetPrivate::firstPageIndex(const QAbstractItemModel& model, const QModelIndex& parent)
+{
+    for (int row = 0, rows = model.rowCount(parent); row < rows; ++row)
+    {
+        const auto index = model.index(row, 0, parent);
+
+        // Intermediate groups have no page of their own, so the plain first row may be one.
+        if (pages.value(index.data(Qt::UserRole).toString()))
+        {
+            return index;
+        }
+
+        if (auto descendant = firstPageIndex(model, index); descendant.isValid())
+        {
+            return descendant;
+        }
+    }
+
+    return {};
+}
+
 void QcwPreferencesWidgetPrivate::buildPreferencesTree()
 {
     QMap<QString, QStandardItem*> items;
 
-    for (const auto& [settingsGroup, page] : preferencesManager->allPages().asKeyValueRange())
+    for (const auto& [settingsGroup, page] : pages.asKeyValueRange())
     {
+        // The constructor ignores a null entry when it installs providers; keep the tree in
+        // step with that instead of dereferencing it here.
+        if (!page)
+        {
+            continue;
+        }
+
         auto* item = ensureTreeItem(settingsGroup, items);
         item->setText(page->name());
         item->setData(settingsGroup, Qt::UserRole);
@@ -515,7 +578,7 @@ QcwPreferencesPage* QcwPreferencesWidgetPrivate::currentPage() const
         return nullptr;
     }
 
-    return preferencesManager->getPage(index.data(Qt::UserRole).toString());
+    return pages.value(index.data(Qt::UserRole).toString());
 }
 
 void QcwPreferencesWidgetPrivate::showPage(const QModelIndex& index)
@@ -543,7 +606,7 @@ void QcwPreferencesWidgetPrivate::showPage(const QModelIndex& index)
     }
     pathLabel->setText(path);
 
-    if (auto* page = preferencesManager->getPage(index.data(Qt::UserRole).toString()))
+    if (auto* page = pages.value(index.data(Qt::UserRole).toString()))
     {
         page->loadSettings();
         // setWidget() reparents the page to the viewport and shows it.

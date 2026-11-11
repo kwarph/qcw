@@ -179,7 +179,7 @@ publisher and its subscribers, documented next to the interface, not by the fram
 "optimise" it into a cached/shared instance. The object comes from a provider function:
 
 ```cpp
-using QcwSettingsProvider = QSettings (*)();
+using QcwSettingsProvider = std::function<QSettings()>;
 
 struct QCW_EXPORT QcwSettings
 {
@@ -201,6 +201,12 @@ QSettings QcwSettings::get()
   installs a provider that keeps everything in `configDirectory()/QcwSettings.ini` in INI
   format. Only the first call has an effect, so an application may install its own provider
   before `QcwWorkbench::initialize()`, and `initialize(nullptr)` freezes the default.
+- `QcwPreferencesWidget` and `QcwPreferencesDialog` take a page map and a provider of their
+  own, so a project can edit its own store without touching the global one. Pages reach that
+  store through `QcwPreferencesPage::settings()`; the widget installs the provider with
+  `setSettingsProvider()`, and an empty provider falls back to `get()`. A page keeps one
+  provider for life, so give each scope its own page instances and capture only state that
+  outlives the page.
 - Qt documents `QSettings` as *reentrant*: **distinct** objects may be used from different
   threads at once, even when they wrap the same store. A single shared instance would be
   data-race territory.
@@ -213,9 +219,9 @@ QSettings QcwSettings::get()
   persisting `setValue()` needs no explicit `sync()`.
 - Changes made through one object are visible through the others in the process
   immediately, so nothing is lost by not sharing the wrapper.
-- The provider is a plain global, so install it during startup, before other threads call
-  `get()`. Set the application/organisation names before touching settings, since both the
-  default store and the INI path derive from them.
+- The process-wide provider is a plain global, so install it during startup, before other
+  threads call `get()`. Set the application/organisation names before touching settings, since
+  both the default store and the INI path derive from them.
 
 ## Translation catalogs
 

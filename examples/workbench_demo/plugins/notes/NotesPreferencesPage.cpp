@@ -4,7 +4,6 @@
 #include "NotesPreferencesPage.h"
 
 #include "DemoNotes.h"
-#include "QcwSettings.h"
 
 #include <QCheckBox>
 #include <QEvent>
@@ -73,12 +72,12 @@ void NotesPreferencesPage::restoreDefaults()
 
 void NotesPreferencesPage::loadSettings()
 {
-    const bool enabled = QcwSettings::get().value(QString(demo::NotesLogKey), true).toBool();
+    const bool enabled = settings().value(QString(demo::NotesLogKey), true).toBool();
     const QSignalBlocker blocker { mLogNewNotes };
     mLogNewNotes->setChecked(enabled);
 }
 
 void NotesPreferencesPage::writeSettings()
 {
-    QcwSettings::get().setValue(QString(demo::NotesLogKey), mLogNewNotes->isChecked());
+    settings().setValue(QString(demo::NotesLogKey), mLogNewNotes->isChecked());
 }

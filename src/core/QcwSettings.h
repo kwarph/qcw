@@ -4,18 +4,9 @@
 #pragma once
 
 #include "QcwGlobal.h"
-#include <QSettings>
-#include <functional>
+#include "QcwSettingsProvider.h"
 
 QT_BEGIN_NAMESPACE
-
-/**
- * @brief Factory for settings objects, installed with QcwSettings::initialize().
- * @details A plain function pointer, so a provider cannot capture state and must stay
- * callable for the rest of the process. It is called once per QcwSettings::get() and must
- * be safe to call from every thread that reads settings.
- */
-using QcwSettingsProvider = std::function<QSettings()>;
 
 /**
  * @class QcwSettings
@@ -31,7 +22,8 @@ using QcwSettingsProvider = std::function<QSettings()>;
  * that default QSettings. Applications that need a specific store install their own provider;
  * QcwWorkbench-based applications do so to keep every setting in the single INI file
  * <tt>configDirectory()/QcwSettings.ini</tt>. QcwPreferencesWidget exports and imports the
- * whole configuration either way, converting to and from INI as needed.
+ * store behind the provider it was built with — this one for the workbench's default dialog —
+ * converting to and from INI as needed.
  *
  * @par Usage
  * @code

@@ -94,6 +94,7 @@ target_sources(${TARGET}
             core/QcwPluginTemplate.h
             core/QcwSerializeUtils.h
             core/QcwSettings.h
+            core/QcwSettingsProvider.h
 
     FILE_SET headers_preferences TYPE HEADERS
         BASE_DIRS preferences

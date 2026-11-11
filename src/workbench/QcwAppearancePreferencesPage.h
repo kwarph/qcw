@@ -43,6 +43,12 @@ class QcwAppearancePreferencesPagePrivate;
  * them in that event, as the demo's views and the built-in pages do; see
  * QcwWindow::retranslateUi() and QcwTranslations.
  *
+ * @note This page is process-wide on purpose. The theme manager, QcwTranslations and
+ * QcwWindowStyler all persist through QcwSettings, and the state they apply belongs to the
+ * whole application, so the page reads and writes QcwSettings::get() directly instead of going
+ * through QcwPreferencesPage::settings(). Do not put it into a QcwPreferencesWidget bound to a
+ * project store: its edits would still change the global configuration.
+ *
  * @note QcwWorkbench::initialize() calls applyStoredSettings() once, after QcwThemeManager has
  * been initialized and before plugins and windows are created. A page used without
  * QcwWorkbench must call applyStoredSettings() itself to restore the language, font and

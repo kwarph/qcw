@@ -4,6 +4,7 @@
 #include "QcwWindowStyler.h"
 #include "QcwCommandRegistry.h"
 #include "QcwPreferencesDialog.h"
+#include "QcwPreferencesManager.h"
 #include "QcwWindowActionIds.h"
 #include "QcwNotificationManager.h"
 #include "QcwFastViewStyleSettings.h"
@@ -324,8 +325,9 @@ void QcwWindowStylerPrivate::openPreferences() const
         }
     }
 
-    // No active window yet; open the dialog directly.
-    auto* dialog = new QcwPreferencesDialog;
+    // No active window yet; open the dialog directly. The empty provider selects the
+    // process-wide store, matching the workbench's own Preferences command.
+    auto* dialog = new QcwPreferencesDialog { preferencesManager->allPages(), {} };
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->resize(900, 640);
     dialog->show();
