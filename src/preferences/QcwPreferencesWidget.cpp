@@ -4,19 +4,16 @@
 #include "QcwPreferencesWidget.h"
 #include "QcwPreferencesPage.h"
 #include "QcwSettings.h"
-#include "QcwSplitter.h"
 #include "QcwTreeProxyModel.h"
 #include "QcwFixedRowHeightItemDelegate.h"
 #include "QcwPathUtils.h"
 #include "QcwOverlayScrollArea.h"
-#include "QcwOverlayScrollBarUtils.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFrame>
-#include <QHBoxLayout>
 #include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
@@ -27,7 +24,6 @@
 #include <QStandardItemModel>
 #include <QStringList>
 #include <QTreeView>
-#include <QVBoxLayout>
 
 QT_BEGIN_NAMESPACE
 
@@ -122,7 +118,7 @@ class QcwPreferencesWidgetPrivate
 public:
     explicit QcwPreferencesWidgetPrivate(QcwPreferencesWidget* interface);
 
-    void setupUi();
+    void setupUi(QLineEdit* filterEdit, QLabel* navigationLabel, QTreeView* tree, QSplitter* navigationSplitter);
     void retranslateUi();
     void buildPreferencesTree();
     QStandardItem* ensureTreeItem(const QString& settingsGroup, QMap<QString, QStandardItem*>& items);
@@ -153,7 +149,7 @@ public:
 QcwPreferencesWidget::QcwPreferencesWidget(const QMap<QString, QcwPreferencesPage*>& pages,
                                            QcwSettingsProvider settingsProvider,
                                            QWidget* parent) :
-    QWidget { parent }, impl { new QcwPreferencesWidgetPrivate { this } }
+    QcwNavigationContentWidget { parent }, impl { new QcwPreferencesWidgetPrivate { this } }
 {
     // An empty provider is the documented shorthand for the process-wide store. Resolve it
     // here, once, so export/import and every page below see the same non-empty provider.
@@ -177,7 +173,12 @@ QcwPreferencesWidget::QcwPreferencesWidget(const QMap<QString, QcwPreferencesPag
             page->setSettingsProvider(settingsProvider);
         }
     }
-    impl->setupUi();
+    // The base owns the filter, tree, splitter and breadcrumb. Hand those widgets to the
+    // private once, so it can drive them without reaching into the base's protected API.
+    impl->setupUi(filterEdit(), navigationLabel(), treeView(), splitter());
+
+    // setupUi() creates the page host; the base reparents it into the content pane.
+    setContentWidget(impl->rightPanel);
 }
 
 QcwPreferencesWidget::~QcwPreferencesWidget()
@@ -370,43 +371,17 @@ QcwPreferencesWidgetPrivate::QcwPreferencesWidgetPrivate(QcwPreferencesWidget* i
 {
 }
 
-void QcwPreferencesWidgetPrivate::setupUi()
+void QcwPreferencesWidgetPrivate::setupUi(QLineEdit* filterEdit,
+                                          QLabel* navigationLabel,
+                                          QTreeView* tree,
+                                          QSplitter* navigationSplitter)
 {
-    auto mainLayout = new QVBoxLayout(owner);
-    mainLayout->setSpacing(0);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
-
-    splitter = new QcwSplitter(owner);
-    splitter->setObjectName("splitter");
-    splitter->setOrientation(Qt::Orientation::Horizontal);
-
-    auto widget = new QWidget(splitter);
-    auto vLayout = new QVBoxLayout(widget);
-    vLayout->setSpacing(0);
-    vLayout->setContentsMargins(0, 0, 0, 0);
-    auto hLayout = new QHBoxLayout();
-    hLayout->setContentsMargins(6, 6, 6, 6);
-
-    lineEdit = new QLineEdit(widget);
-    lineEdit->setObjectName("lineEdit");
-    lineEdit->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Fixed);
-    lineEdit->setClearButtonEnabled(true);
-
-    hLayout->addWidget(lineEdit);
-
-    vLayout->addLayout(hLayout);
-
-    treeView = new QTreeView(widget);
-    treeView->setObjectName("treeView");
-    treeView->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Expanding);
-    treeView->setFrameShape(QFrame::Shape::NoFrame);
-    treeView->setLineWidth(0);
-    treeView->setHeaderHidden(true);
-    treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    treeView->setUniformRowHeights(true);
-    treeView->installEventFilter(owner);
-
-    attachOverlayScrollBar(treeView, widget);
+    // The base owns these widgets; the private keeps pointers so it can drive the page tree
+    // without being a friend of the host (and without exposing the base's protected API).
+    lineEdit = filterEdit;
+    pathLabel = navigationLabel;
+    treeView = tree;
+    splitter = navigationSplitter;
 
     model = new QStandardItemModel(owner);
     proxyModel = new QcwPreferencesProxyModel(this, owner);
@@ -415,47 +390,10 @@ void QcwPreferencesWidgetPrivate::setupUi()
     treeView->setModel(proxyModel);
     treeView->setItemDelegate(new QcwFixedRowHeightItemDelegate(treeView));
 
-    vLayout->addWidget(treeView);
-
-    splitter->addWidget(widget);
-
-    auto widget1 = new QWidget(splitter);
-    auto vLayout2 = new QVBoxLayout(widget1);
-    vLayout2->setSpacing(0);
-    vLayout2->setContentsMargins(0, 0, 0, 0);
-    auto hLayout2 = new QHBoxLayout();
-    hLayout2->setContentsMargins(6, 6, 6, 3);
-    pathLabel = new QLabel(widget1);
-    pathLabel->setObjectName("pathLabel");
-    QSizePolicy sizePolicy2(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
-    sizePolicy2.setHorizontalStretch(0);
-    sizePolicy2.setVerticalStretch(0);
-    sizePolicy2.setHeightForWidth(pathLabel->sizePolicy().hasHeightForWidth());
-    pathLabel->setSizePolicy(sizePolicy2);
-    pathLabel->setFixedHeight(lineEdit->height());
-
-    hLayout2->addWidget(pathLabel);
-
-    vLayout2->addLayout(hLayout2);
-
-    auto line = new QFrame(widget1);
-    line->setObjectName("line");
-    line->setFrameShape(QFrame::Shape::HLine);
-    line->setFrameShadow(QFrame::Shadow::Sunken);
-
-    vLayout2->addWidget(line);
-
-    rightPanel = new QcwOverlayScrollArea(widget1);
+    rightPanel = new QcwOverlayScrollArea(owner);
     rightPanel->setObjectName("rightPanel");
-    rightPanel->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
     rightPanel->setWidgetResizable(true);
     rightPanel->setFrameShape(QFrame::NoFrame);
-
-    vLayout2->addWidget(rightPanel);
-
-    splitter->addWidget(widget1);
-
-    mainLayout->addWidget(splitter);
 
     QObject::connect(lineEdit, &QLineEdit::textChanged, [this](const QString& text)
     {

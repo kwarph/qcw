@@ -5,7 +5,7 @@
 
 #include "QcwGlobal.h"
 #include "QcwSettingsProvider.h"
-#include <QDialog>
+#include "QcwNavigationContentDialog.h"
 #include <QMap>
 
 QT_BEGIN_NAMESPACE
@@ -18,10 +18,11 @@ class QcwPreferencesDialogPrivate;
  * @class QcwPreferencesDialog
  * @brief Top-level window around QcwPreferencesWidget, with the file and close buttons.
  *
- * @details The dialog adds Export, Import, Restore Defaults and Close below the widget; all
- * editing happens in the pages and is applied immediately, so there is no OK or Apply step.
- * Export writes every key of the configured store elsewhere; Import validates the chosen file,
- * backs up the store and reloads the pages.
+ * @details The navigation frame and the button row come from QcwNavigationContentDialog; this
+ * class fills the frame with QcwPreferencesWidget and adds Restore Defaults, Export, Import and
+ * Close below it. All editing happens in the pages and is applied immediately, so there is no
+ * OK or Apply step. Export writes every key of the configured store elsewhere; Import validates
+ * the chosen file, backs up the store and reloads the pages.
  *
  * The dialog owns no pages and no settings store: it forwards the page map and the provider to
  * QcwPreferencesWidget. The workbench passes the registry's pages and an empty provider, which
@@ -34,9 +35,9 @@ class QcwPreferencesDialogPrivate;
  * owned by QcwPreferencesManager, and one widget cannot be shown in two windows. QcwWorkbench
  * reuses its single dialog when the Preferences action is triggered again.
  *
- * @see QcwPreferencesWidget, QcwPreferencesPage
+ * @see QcwNavigationContentDialog, QcwPreferencesWidget, QcwPreferencesPage
  */
-class QCW_EXPORT QcwPreferencesDialog : public QDialog
+class QCW_EXPORT QcwPreferencesDialog : public QcwNavigationContentDialog
 {
     Q_OBJECT
 

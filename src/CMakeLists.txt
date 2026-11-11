@@ -40,6 +40,8 @@ target_sources(${TARGET}
 
         widgets/QcwClickableLabel.cpp
         widgets/QcwFixedRowHeightItemDelegate.cpp
+        widgets/QcwNavigationContentDialog.cpp
+        widgets/QcwNavigationContentWidget.cpp
         widgets/QcwOverlayScrollArea.cpp
         widgets/QcwOverlayScrollBar.cpp
         widgets/QcwOverlayScrollBarAttacher.cpp
@@ -125,6 +127,8 @@ target_sources(${TARGET}
         FILES
             widgets/QcwClickableLabel.h
             widgets/QcwFixedRowHeightItemDelegate.h
+            widgets/QcwNavigationContentDialog.h
+            widgets/QcwNavigationContentWidget.h
             widgets/QcwOverlayScrollArea.h
             widgets/QcwOverlayScrollBar.h
             widgets/QcwOverlayScrollBarAttacher.h

@@ -7,10 +7,7 @@
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QEvent>
-#include <QFrame>
-#include <QHBoxLayout>
 #include <QPushButton>
-#include <QVBoxLayout>
 
 QT_BEGIN_NAMESPACE
 
@@ -50,43 +47,25 @@ void QcwPreferencesDialogPrivate::retranslateUi()
 QcwPreferencesDialog::QcwPreferencesDialog(const QMap<QString, QcwPreferencesPage*>& pages,
                                            QcwSettingsProvider settingsProvider,
                                            QWidget* parent) :
-    QDialog { parent }, impl { new QcwPreferencesDialogPrivate { this } }
+    QcwNavigationContentDialog { parent }, impl { new QcwPreferencesDialogPrivate { this } }
 {
-    auto verticalLayout = new QVBoxLayout(this);
-    verticalLayout->setContentsMargins(0, 0, 0, 0);
-    verticalLayout->setSpacing(0);
-    verticalLayout->setObjectName("verticalLayout");
+    auto widget = new QcwPreferencesWidget { pages, settingsProvider, this };
+    setContentWidget(widget);
 
-    auto widget = new QcwPreferencesWidget(pages, settingsProvider, this);
-    verticalLayout->addWidget(widget);
+    auto* btnBox = buttonBox();
+    btnBox->setStandardButtons(QDialogButtonBox::StandardButton::Close);
 
-    auto line = new QFrame(this);
-    line->setObjectName("line");
-    line->setFrameShape(QFrame::Shape::HLine);
-    line->setFrameShadow(QFrame::Shadow::Sunken);
-    verticalLayout->addWidget(line);
-
-    auto buttonLayout = new QHBoxLayout();
-    buttonLayout->setContentsMargins(9, 9, 9, 9);
-    buttonLayout->setSpacing(9);
-    buttonLayout->setObjectName("horizontalLayout");
-
+    // The base keeps the action buttons on the left and the button box on the right, with a
+    // stretch in between. Add them in visual order so Restore, Export, Import stay left of
+    // Close, as they were in the old hand-built row.
     impl->restoreButton = new QPushButton(this);
-    buttonLayout->addWidget(impl->restoreButton);
+    addActionButton(impl->restoreButton);
 
     impl->exportButton = new QPushButton(this);
-    buttonLayout->addWidget(impl->exportButton);
+    addActionButton(impl->exportButton);
 
     impl->importButton = new QPushButton(this);
-    buttonLayout->addWidget(impl->importButton);
-
-    auto buttonBox = new QDialogButtonBox(this);
-    buttonBox->setObjectName("buttonBox");
-    buttonBox->setOrientation(Qt::Orientation::Horizontal);
-    buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Close);
-    buttonLayout->addWidget(buttonBox);
-
-    verticalLayout->addLayout(buttonLayout);
+    addActionButton(impl->importButton);
 
     // Preferences pages apply changes live; pressing Return in a field must not close the
     // dialog through a default button.
@@ -96,7 +75,7 @@ QcwPreferencesDialog::QcwPreferencesDialog(const QMap<QString, QcwPreferencesPag
         button->setAutoDefault(false);
     }
 
-    connect(buttonBox, &QDialogButtonBox::rejected, this, qOverload<>(&QDialog::reject));
+    connect(btnBox, &QDialogButtonBox::rejected, this, qOverload<>(&QDialog::reject));
     connect(impl->restoreButton, &QPushButton::clicked, widget, &QcwPreferencesWidget::restoreDefaults);
     connect(impl->exportButton, &QPushButton::clicked, widget, &QcwPreferencesWidget::exportSettings);
     connect(impl->importButton, &QPushButton::clicked, widget, &QcwPreferencesWidget::importSettings);

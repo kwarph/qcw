@@ -5,8 +5,8 @@
 
 #include "QcwGlobal.h"
 #include "QcwSettingsProvider.h"
+#include "QcwNavigationContentWidget.h"
 #include <QMap>
-#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 
@@ -19,7 +19,9 @@ class QcwPreferencesWidgetPrivate;
  *
  * @details The left side lists the page map as a tree of settings groups; a filter line above
  * it matches group and page names as well as the text inside each page. Selecting a page shows
- * it on the right, with the path to it as a breadcrumb above.
+ * it on the right, with the path to it as a breadcrumb above. The filter, tree, splitter and
+ * breadcrumb itself are the QcwNavigationContentWidget base; this class fills the tree from
+ * the page map and installs the page host in the content area.
  *
  * The widget does not read QcwPreferencesManager itself: the host passes the page map it wants
  * displayed, and the widget copies that map when it is constructed. That is what lets one
@@ -49,7 +51,7 @@ class QcwPreferencesWidgetPrivate;
  * @see QcwPreferencesDialog, QcwPreferencesPage, QcwPreferencesManager, QcwSettings,
  * QcwSettingsProvider
  */
-class QCW_EXPORT QcwPreferencesWidget : public QWidget
+class QCW_EXPORT QcwPreferencesWidget : public QcwNavigationContentWidget
 {
     Q_OBJECT
 
