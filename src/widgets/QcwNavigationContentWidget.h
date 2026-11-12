@@ -43,7 +43,6 @@ public:
     explicit QcwNavigationContentWidget(QWidget* parent = nullptr);
     ~QcwNavigationContentWidget() override;
 
-protected:
     /// The horizontal splitter between the tree and content panes.
     QSplitter* splitter() const;
 

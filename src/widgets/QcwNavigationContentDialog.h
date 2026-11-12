@@ -38,7 +38,6 @@ public:
     /// Builds the empty frame: content area, separator and button row.
     explicit QcwNavigationContentDialog(QWidget* parent = nullptr);
 
-protected:
     /**
      * @brief Installs @p contentWidget above the separator.
      * @param contentWidget Navigation frame to show; nullptr is ignored.
