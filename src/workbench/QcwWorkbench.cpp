@@ -237,6 +237,11 @@ bool QcwWorkbench::initialize(const QString& appName,
 
     QcwLogger::install();
 
+    if (!processCommandLineArguments())
+    {
+        return false;
+    }
+
     // prepare configuration directory
     if (!setConfigDirectory())
     {
@@ -360,10 +365,14 @@ bool QcwWorkbench::start()
     return started;
 }
 
+bool QcwWorkbench::processCommandLineArguments()
+{
+    return true;
+}
+
 bool QcwWorkbench::setConfigDirectory()
 {
-    return QcwAppDirectories::setConfigDirectory(
-        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+    return QcwAppDirectories::setConfigDirectory(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
 }
 
 void QcwWorkbench::registerGlobalActions()

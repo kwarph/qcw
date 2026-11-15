@@ -183,6 +183,17 @@ signals:
 
 protected:
     /**
+     * @brief Handles application-specific command-line arguments.
+     * @return True to continue initialization, false when the command line has been fully
+     *         handled and initialize() must stop.
+     *
+     * @details Called once from initialize(), after the QApplication identity has been set and
+     * before setConfigDirectory(). QcwSettings is not initialized yet, so an implementation
+     * must not depend on workspace or application settings. The default returns true.
+     */
+    virtual bool processCommandLineArguments();
+
+    /**
      * @brief Selects the configuration directory before QcwSettings is installed.
      *
      * @details Called once from initialize(), after the application/organization names are
