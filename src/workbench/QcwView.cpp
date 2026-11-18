@@ -7,6 +7,7 @@
 #include "QcwTopicService.h"
 #include "QcwWindow.h"
 #include <QApplication>
+#include <QMenu>
 #include <QPointer>
 
 QT_BEGIN_NAMESPACE
@@ -44,6 +45,10 @@ public:
     // for another one afterwards, when the view's place in the world is settled.
     bool inTransition { false };
     bool againRequested { false };
+    // Created on first contextMenu() call and parented to the view, so ~QWidget releases it
+    // after this private is gone. The named actions are borrowed, never owned.
+    QMenu* contextMenu { nullptr };
+    QMap<QLatin1String, QAction*> namedActions;
 };
 
 QcwViewPrivate::QcwViewPrivate(QcwView* interface) :
@@ -194,6 +199,21 @@ QcwView::~QcwView()
 QString QcwView::type() const
 {
     return property("ViewType").toString();
+}
+
+QMenu* QcwView::contextMenu() const
+{
+    if (!impl->contextMenu)
+    {
+        impl->contextMenu = new QMenu { impl->owner };
+    }
+
+    return impl->contextMenu;
+}
+
+QMap<QLatin1String, QAction*>& QcwView::namedActions()
+{
+    return impl->namedActions;
 }
 
 void QcwView::setType(const QString& type)

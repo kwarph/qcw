@@ -128,6 +128,10 @@ qt_add_executable(id_conventions_test
     id_conventions_test.cpp
 )
 
+qt_add_executable(view_context_menu_test
+    view_context_menu_test.cpp
+)
+
 qt_add_executable(topic_service_test
     topic_service_test.cpp
 )
@@ -184,6 +188,7 @@ foreach(target IN ITEMS
     builtin_commands_test
     id_catalog_dump_test
     id_conventions_test
+    view_context_menu_test
     topic_service_test
     window_topic_teardown_test
     view_window_topic_test

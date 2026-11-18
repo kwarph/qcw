@@ -441,8 +441,8 @@ revision
 <TypeName>/<lowerCamelAction>
 ```
 
-- A per-view key an application gives one of its own actions: for example a key in a named-action
-  map, or an anchor another contribution uses to place entries around it.
+- A per-view key an application gives one of its own actions: `QcwView::namedActions()` is the
+  map a view registers them in, so one contribution can find an anchor another one placed.
 - `<TypeName>` is the class that declares the action name: the view class itself, or a reusable
   view base that defines the action set.
 - These names are not registry ids and never leave the view's own API; they do not need an owner.

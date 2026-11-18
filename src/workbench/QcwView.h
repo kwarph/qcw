@@ -7,6 +7,8 @@
 #include <QWidget>
 #include <QHash>
 #include <QList>
+#include <QLatin1String>
+#include <QMap>
 #include <QVariant>
 #include <QVariantMap>
 #include <functional>
@@ -15,6 +17,7 @@ QT_BEGIN_NAMESPACE
 
 class QAction;
 class QEvent;
+class QMenu;
 class QShowEvent;
 class QToolBar;
 class QcwCommandHandler;
@@ -267,6 +270,36 @@ protected:
      * @see subscribeWindowTopic()
      */
     void showEvent(QShowEvent* event) override;
+
+    /**
+     * @brief The view's context menu, created on first use.
+     * @return The menu, never @c nullptr.
+     *
+     * @details The menu is a child of this view and is not shown by QcwView: a view that wants
+     * a context menu selects a context-menu policy and calls exec() at the position it chooses.
+     * Subclasses add their actions here; nothing is added by default.
+     *
+     * @note Create or mutate it only on the GUI thread. The view owns the menu, so a pointer
+     *       stays valid for as long as the view lives.
+     * @see namedActions()
+     */
+    QMenu* contextMenu() const;
+
+    /**
+     * @brief The actions this view exposes under stable, view-local names.
+     * @return A mutable map from a view-local name to the action registered for it.
+     *
+     * @details The map lets a view find one of its own actions again — for example to place a
+     * context-menu section relative to it, or to update its state — without storing a member for
+     * every action. The names are local to the view and are not command ids; a view that needs
+     * to answer window commands does that through commandHandlers().
+     *
+     * @note The view does not own the actions and never deletes them: the map only borrows the
+     *       pointers, so remove an entry before its action is destroyed. Do not insert a null
+     *       action. Mutate the map only on the GUI thread.
+     * @see contextMenu(), commandHandlers()
+     */
+    QMap<QLatin1String, QAction*>& namedActions();
 
     /**
      * @brief Re-resolves the texts this view holds as strings, whenever the UI language changes.
