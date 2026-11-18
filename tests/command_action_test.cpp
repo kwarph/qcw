@@ -284,7 +284,7 @@ void testUiLessCommandRunsFromItsShortcut()
     check(action && action->isVisible() && action->isEnabled(),
           "a UI-less command action is created and stays enabled");
 
-    auto* fileMenu = window.getMenu(QcwWindowActionIds::MenuFile);
+    auto* fileMenu = window.menu(QcwWindowActionIds::MenuFile);
     check(fileMenu && !fileMenu->actions().contains(action), "no menu holds the UI-less command");
 
     window.unregisterHandler(QString(UiLessCommandId));

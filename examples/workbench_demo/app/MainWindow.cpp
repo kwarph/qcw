@@ -144,7 +144,7 @@ void MainWindow::addViewMenu()
     registeredMenus().insert(QString(demo::MenuView), viewMenu);
 
     // The window creates File/Edit/Window/Help in its constructor; place View right after Edit.
-    if (auto* windowMenu = getMenu(QcwWindowActionIds::MenuWindow))
+    if (auto* windowMenu = menu(QcwWindowActionIds::MenuWindow))
     {
         menuBar()->insertMenu(windowMenu->menuAction(), viewMenu);
     }
@@ -277,7 +277,7 @@ void MainWindow::retranslateUi()
 
     setWindowTitle(tr("Workbench Demo"));
 
-    if (auto* viewMenu = getMenu(QString(demo::MenuView)))
+    if (auto* viewMenu = menu(QString(demo::MenuView)))
     {
         viewMenu->setTitle(tr("&View"));
     }

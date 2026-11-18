@@ -1,17 +1,21 @@
 # QCW Command, Handler, Action Set and Menu Contribution Design
 
-- Status: Confirmed design
+- Status: Implemented in QCW 2.2.0
 - Scope: `workbench` module, plus the `view` / `perspective` / `plugin` interfaces it interacts with
 - Reference: Eclipse IDE command / handler, menu contribution, and action set mechanisms
 - Goal: Refactor QCW's command, menu, toolbar, shortcut and action set system while preserving Qt conventions
+- Historical sections: 1, 2, 13 and 15 describe the pre-2.0 chain, the migration comparison and
+  the original implementation plan. They are kept as context; the current surface is Section 3.4
+  and the headers under `src/workbench`.
 
 ---
 
 ## Table of Contents
 
 1. [Background and Goals](#1-background-and-goals)
-2. [Current State Analysis](#2-current-state-analysis)
+2. [Pre-Redesign State (Historical)](#2-pre-redesign-state-historical)
 3. [Overall Model](#3-overall-model)
+   - [3.4 Current Window Surface](#34-current-window-surface-qcw-220)
 4. [Command Declaration Layer](#4-command-declaration-layer)
 5. [Handler Layer](#5-handler-layer)
 6. [Command QAction](#6-command-qaction)
@@ -21,16 +25,21 @@
 10. [Naming Conventions](#10-naming-conventions)
 11. [Runtime Contracts and Cross-Plugin Extension](#11-runtime-contracts-and-cross-plugin-extension)
 12. [Diagnostics](#12-diagnostics)
-13. [Comparison with Existing Code](#13-comparison-with-existing-code)
+13. [Comparison with Existing Code (Historical)](#13-comparison-with-existing-code-historical)
 14. [Migration Examples](#14-migration-examples)
-15. [Implementation Phases](#15-implementation-phases)
+15. [Implementation Phases (Historical)](#15-implementation-phases-historical)
 16. [Design Decision Summary](#16-design-decision-summary)
 
 ---
 
 ## 1. Background and Goals
 
-QCW is currently `QAction`-centric: `QcwView::actionSets()` lets the current view dynamically contribute menu actions, `QcwCommandSpec` adds application commands to the File/Edit skeleton, `QcwGlobalActions` publishes process-wide actions, and `QcwWindow::resolveCommand()` looks up `QAction`s in a fixed order.
+**Historical context (pre-2.0).** The old chain was `QAction`-centric:
+`QcwView::actionSets()` let the current view dynamically contribute menu actions,
+`QcwCommandSpec` added application commands to the File/Edit skeleton, `QcwGlobalActions`
+published process-wide actions, and `QcwWindow::commandAction()` looked up `QAction`s in a fixed
+order. None of those APIs exist in the current tree; Sections 2 and 13 describe that chain only
+to explain the migration.
 
 This mechanism is simple and Qt-friendly, but has the following limitations:
 
@@ -60,7 +69,10 @@ This mechanism is simple and Qt-friendly, but has the following limitations:
 
 ---
 
-## 2. Current State Analysis
+## 2. Pre-Redesign State (Historical)
+
+> This section describes the code before the 2.0 redesign. It is not the current API; see
+> Section 3.4 for the implemented surface.
 
 ### 2.1 Existing Chain
 
@@ -72,7 +84,7 @@ This mechanism is simple and Qt-friendly, but has the following limitations:
 | Handler carrier | `QAction` | Returned by views via `actionSets()`, or published by `QcwGlobalActions` |
 | Action set | `QcwView::actionSets()` | Grouped per view; contributed as a whole when the view becomes current |
 | Menu contribution position | `*Start` / `*End` anchors; fixed slots in standard menus | Contributions sit between anchors; standard slots are filled by id |
-| Handler resolution | `QcwWindow::resolveCommand()`, `composeCommandMenu()` | Current view → other views of current perspective → other views of window → `globalActions` |
+| Handler resolution | `QcwWindow::commandAction()`, `composeCommandMenu()` | Current view → other views of current perspective → other views of window → `globalActions` |
 | Visibility/enabled rules | `QcwCommandScope` + `QAction::setEnabled()` | Simplified expression |
 | Parameters | Temporary use of `QAction::data()` | No formal parameter model |
 | Shortcuts | `QAction::setShortcut()` | No independent key binding layer |
@@ -118,6 +130,39 @@ The first existing handler wins. `accepts(params)` is used only for parameter va
 4. **Action sets switch automatically by perspective.** Perspectives declare visible action sets; the window rebuilds menus/toolbars on switch.
 5. **Execution always goes through `executeCommand(id, params)`.** Shortcuts, palette, toolbar and programmatic calls share one path.
 6. **An id is an organizational identifier internal to its owner and does not serve as a cross-plugin contract.** Cross-plugin extension goes only through interfaces.
+
+### 3.4 Current Window Surface (QCW 2.2.0)
+
+The implemented `QcwWindow` surface is deliberately small. These are the lookups a caller can
+make, one per question:
+
+| Need | API | Source and ownership |
+|---|---|---|
+| A command's shared action | `QAction* commandAction(const QString& commandId)` | `QcwCommandRegistry` metadata + the resolved handler; one action per window |
+| A window menu | `QMenu* menu(const QString& menuId)` | the window's menu table; every menu is a contribution target |
+| A window tool bar | `QToolBar* toolBar(const QString& target)` | the window's tool-bar table; contribution targets use `ToolBar/` |
+| A command handler | `QcwCommandHandler* resolveHandler(const QString& id)` | current view → perspective → window → workbench |
+| Run a command | `bool executeCommand(const QString& id, const QVariantMap& params = {})` | resolved handler, or false |
+| Register a window handler | `registerHandler()` / `unregisterHandler()` | window scope; the window borrows the handler |
+
+There is no second menu table and no window-level named-action table:
+
+- A subclass registers its own menu in `registeredMenus()` (protected) under a stable key, for
+  example `gusu/Build`; `buildMenus()` fills **every** registered menu from the contributions
+  whose `target` equals that key. A profile's Build menu is therefore an ordinary contribution
+  target, not a hand-built exception.
+- `menu()` replaces the removed `getMenu()`. `toolBar()` replaces the removed `getToolBar()`.
+  `commandAction()` is the only command-action lookup; `resolveCommand()` is gone.
+- The retired `namedMenus()` / `namedMenu()` / `namedActions()` / `namedAction()` window helpers
+  do not exist in 2.2.0.
+- `QcwView::namedActions()` still exists, but it is **view-local**: it maps a view-local anchor
+  name to an action the view owns, so `insertContextMenuSection()` can position a context-menu
+  section. It is not a window command lookup and has nothing to do with `QcwWindow`.
+
+Perspective action sets are the one dynamic part of the menu structure: all contributions and
+targets are fixed declarations, and switching a perspective rebuilds the visible entries from
+those declarations (Section 7.5). A `currentView` change only changes handler resolution and the
+command action's enabled/visible/checked state; it does not add or remove menu entries.
 
 ---
 
@@ -185,7 +230,8 @@ signals:
 };
 ```
 
-**Registration semantics:** replace. Re-registering the same id emits a `qWarning` once indicating that the previous metadata was replaced.
+**Registration semantics:** replace. Re-registering an identical `QcwCommandInfo` is silent and
+returns `false`; replacing it with different metadata emits a `qWarning` and returns `true`.
 
 **Format validation:** `registerCommand()` validates the id character set at the entry point (see Section 10). Invalid ids are rejected with a `qWarning`.
 
@@ -293,7 +339,9 @@ bool QcwWindow::executeCommand(const QString& commandId, const Params& params)
 }
 ```
 
-**Registration semantics:** replace. Registering the same id again on perspective / window / global replaces the handler and returns whether a replacement occurred.
+**Registration semantics:** replace. Registering the same id again on perspective / window / global
+replaces the borrowed handler. These registration methods return `void`; replacing is not reported
+as a return value.
 
 **Ownership:**
 
@@ -361,7 +409,7 @@ public:
 | `shortcut` | `QcwCommandInfo::defaultShortcut` | Same |
 | `checkable` | `QcwCommandInfo::checkable` | Set once at command registration |
 | `enabled` | `resolveHandler(id)->isEnabled()` | handler `stateChanged()`, handler registration/unregistration, current view change |
-| `visible` | `resolveHandler(id)->isVisible()` | Same; action sets filter placement, not visibility (Section 7.5) |
+| `visible` | `resolveHandler(id)->isVisible()`, or visible when no handler answers | Same; action sets filter placement, not visibility (Section 7.5) |
 | `checked` | `resolveHandler(id)->isChecked()` | handler `stateChanged()` |
 | `shortcutContext` | `Qt::WindowShortcut` | Set once at creation |
 
@@ -401,14 +449,16 @@ class QCW_EXPORT QcwActionSetRegistry
 public:
     static QcwActionSetRegistry* instance();
 
-    void registerActionSet(const QcwActionSet& set);
-    void unregisterActionSet(const QString& id);
+    bool registerActionSet(const QcwActionSet& set);
+    bool unregisterActionSet(const QString& id);
     const QcwActionSet* actionSet(const QString& id) const;
+    bool contains(const QString& id) const;
     QList<QcwActionSet> allActionSets() const;
 };
 ```
 
-**Registration semantics:** replace; re-registration emits `qWarning`.
+**Registration semantics:** replace; every registration under an existing id emits a `qWarning`.
+The method returns `false` only when the id is invalid or the label is empty.
 
 ### 7.2 Perspective Visibility Declaration
 
@@ -436,7 +486,7 @@ public:
 | `visibleActionSetIds()` is empty | All action sets visible |
 | `visibleActionSetIds()` is non-empty | Only the listed action sets are visible |
 | Contribution's `actionSetId` is empty | Always visible, unaffected by perspective |
-| Perspective references an unregistered action set | `qWarning` once, does not block construction, equivalent to "no contributions" |
+| Perspective references an unregistered action set | `qWarning` once, does not block construction; the unknown id matches no contribution, and the other entries follow the list |
 | Contribution references an unregistered action set | That contribution is invisible, `qWarning` once |
 | Multiple contributions for the same command id | Visibility judged independently; command visible if at least one is visible |
 
@@ -522,9 +572,9 @@ class QCW_EXPORT QcwContributionRegistry
 public:
     static QcwContributionRegistry* instance();
 
-    void registerContribution(const QcwContribution& contribution);
-    void unregisterContribution(const QString& id);
-    void unregisterContributionsOf(const QString& actionSetId);
+    bool registerContribution(const QcwContribution& contribution);
+    bool unregisterContribution(const QString& id);
+    int unregisterContributionsOf(const QString& actionSetId);
 
     QList<QcwContribution> contributionsFor(const QString& target) const;
     QList<QcwContribution> allContributions() const;
@@ -534,14 +584,19 @@ signals:
 };
 ```
 
-**Registration semantics:** replace; re-registration emits `qWarning`.
+**Registration semantics:** replace. An identical re-registration is silent; a replacement that
+changes any field emits a `qWarning`. The method returns `true` when the call was accepted.
 
 ### 8.3 Target Naming
 
 | Type | Format | Example |
 |---|---|---|
-| Menu | No prefix, PascalCase hierarchical path | `File`, `Edit`, `Window/Perspective`, `Window/Appearance` |
-| Toolbar | `ToolBar/` prefix + logical name | `ToolBar/Main`, `ToolBar/Debug` |
+| Menu | path id, optional owner prefix; UpperCamel path | `File`, `Edit`, `Window/Perspective`, `gusu/Build` |
+| Toolbar | `ToolBar/` prefix + logical name; optional owner prefix | `ToolBar/Main`, `ToolBar/Debug` |
+
+Application menu targets may carry a short owner prefix (`gusu/Build`); built-in targets do not.
+Contribution **ids** follow the same rule, but the target is the menu or toolbar key, not the
+contribution id.
 
 Toolbars are created on demand and owned by the window; a bar with nothing placed in it hides itself.
 Menus and toolbars use exactly the same sorting algorithm.
@@ -704,7 +759,7 @@ QList<QcwContribution> sortContributions(
 Each command has one command QAction per window:
 
 ```cpp
-QAction* QcwWindow::commandAction(const QString& commandId) const;
+QAction* QcwWindow::commandAction(const QString& commandId);
 ```
 
 - The shortcut comes from `QcwCommandInfo::defaultShortcut`;
@@ -823,7 +878,7 @@ Perspective creators may only write action set ids they know; cross-plugin actio
 | Contribution references nonexistent command | `placedEntries()` skips the contribution with a `qWarning`; primary diagnostic |
 | Contribution references unregistered action set | `placedEntries()` drops it, with a `qWarning` once per action set id — the sorter stays pure and never reads a registry |
 | Perspective references unregistered action set | `qWarning` once per id, does not block construction; the id matches nothing, so the same rule hides the contributions that named it |
-| Duplicate id registration | replace, with `qWarning` when the new entry says something different — re-declaring an identical contribution is the language-change path and stays silent |
+| Duplicate id registration | replace; commands and contributions warn only when the new entry differs (re-declaring identical metadata is the language-change path and stays silent); action sets warn on any replacement |
 | Invalid id format | Rejected with a `qWarning` |
 | Startup id catalog dump | Optional, enabled by `QCW_DUMP_ID_CATALOG=1`; at the end of `QcwWorkbench::start()` it prints the ids the command, action set and contribution registries hold. Ids only — the registries do not track origins, so no owner is claimed |
 
@@ -845,7 +900,11 @@ Origins are inferred from `QObject::parent()` or the registration `sender`, used
 
 ---
 
-## 13. Comparison with Existing Code
+## 13. Comparison with Existing Code (Historical)
+
+> This table compares the pre-2.0 implementation with the design that replaced it. The
+> "New Mechanism" column is the design language used at the time; the actual 2.2.0 surface is
+> Section 3.4.
 
 | Existing Mechanism | New Mechanism | Handling |
 |---|---|---|
@@ -855,7 +914,7 @@ Origins are inferred from `QObject::parent()` or the registration `sender`, used
 | `QcwCommandSpec` + `QcwWindow::registerCommand()` | `QcwCommandInfo` + `QcwContribution` | Retire |
 | `QcwGlobalActions` | Global command handlers | Fully retired, no compatibility layer |
 | `QcwCommandPalette::buildCommands()` reads `commandRegistry` + `globalActions` | Reads only `commandRegistry` | Remove the globalActions merge logic |
-| `QcwWindow::resolveCommand()` returns `QAction*` | `resolveHandler()` + `executeCommand()` | Replace |
+| `QcwWindow::commandAction()` returns `QAction*` | `resolveHandler()` + `executeCommand()` | Replace |
 | `composeCommandMenu()` / `applyMenuContributions()` | `buildMenus()` + contribution sorting | Remove old implementations |
 | `commandPlaceholders` / `commandActions` | Command QAction | Remove |
 | `QcwGlobalActions::ActionThemes` | `QcwWindowActionIds::ActionThemes` | Pure programmatic command, no menu contribution |
@@ -1012,7 +1071,10 @@ contributionRegistry->registerContribution({
 
 ---
 
-## 15. Implementation Phases
+## 15. Implementation Phases (Historical)
+
+> The phases below record how the redesign was implemented. They are not instructions for the
+> current tree; all four PRs landed before 2.2.0.
 
 ### 15.1 PR Breakdown
 
@@ -1030,7 +1092,7 @@ contributionRegistry->registerContribution({
 - `QcwWindow` gains `registerHandler()` / `unregisterHandler()` / `resolveHandler()` / `executeCommand()` / `commandAction()`;
 - `QcwView` gains `commandHandlers()`;
 - `QcwWindow` creates command QActions and wires shortcuts;
-- `resolveCommand()` prefers handlers, falls back to the existing `QAction` lookup for compatibility;
+- `commandAction()` prefers handlers, falls back to the existing `QAction` lookup for compatibility;
 - Existing `actionSets()` still works.
 
 **PR 3: Switch menu construction to contributions and add action sets**
@@ -1114,7 +1176,7 @@ contributions, and a handler appearing or disappearing does not change that list
 | 24 | Four PRs; no transitional shim in PR 3 |
 | 25 | Id character set and separator rules; namespace rules; format of each id type |
 | 26 | Built-in ids go in `QcwWindowActionIds`; plugin ids go in plugin-internal headers and are not published |
-| 27 | Runtime format validation, plus a `qWarning` when a duplicate id replaces an entry with different content; first version does not track origins |
+| 27 | Runtime format validation; commands/contributions warn when a duplicate id replaces different content, action sets warn on any replacement; the registries do not track origins |
 | 28 | Documentation covers public-owner ids; plugin-internal ids are not in QCW documentation |
 | 29 | Contracts file concept removed; pure runtime contracts |
 | 30 | Plugins do not publish public headers; cross-plugin extension only through interfaces |

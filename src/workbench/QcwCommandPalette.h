@@ -23,7 +23,7 @@ class QcwCommandPalettePrivate;
  *
  * @details The dialog lists every command catalogued in QcwCommandRegistry, grouped under its
  * category and sorted by label, whether or not a menu shows it — a command the palette is the only
- * way to reach is normal here. Each id resolves through QcwWindow::resolveCommand(), so a row is
+ * way to reach is normal here. Each id resolves through QcwWindow::commandAction(), so a row is
  * the window's command QAction and follows the handler behind it: its label, icon, shortcut and
  * enabled state. A command nobody handles stays listed but greyed, and neither the arrow keys nor
  * Enter can select it. The list is built when the dialog opens and on a language change, so a

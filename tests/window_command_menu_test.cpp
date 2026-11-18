@@ -270,8 +270,8 @@ int main(int argc, char* argv[])
     window.show();
     settle();
 
-    auto fileMenu = window.getMenu(QcwWindowActionIds::MenuFile);
-    auto editMenu = window.getMenu(QcwWindowActionIds::MenuEdit);
+    auto fileMenu = window.menu(QcwWindowActionIds::MenuFile);
+    auto editMenu = window.menu(QcwWindowActionIds::MenuEdit);
     check(fileMenu && editMenu, "the File and Edit menus exist");
     if (!fileMenu || !editMenu)
     {
@@ -339,12 +339,11 @@ int main(int argc, char* argv[])
     // The tool bar side of the rule above. This view handles neither Save nor Copy, and the bar did
     // not collapse when it became current: the buttons stay where the contributions put them and
     // only grey out, which is what a hand-picked list used to lose on every tab switch.
-    auto* testToolBar = window.getToolBar(QString(TestToolBarTarget));
-    auto* debugToolBar = window.getToolBar(QString(DebugToolBarTarget));
+    auto* testToolBar = window.toolBar(QString(TestToolBarTarget));
+    auto* debugToolBar = window.toolBar(QString(DebugToolBarTarget));
     check(testToolBar && debugToolBar, "contributions to a ToolBar/ target build that tool bar");
-    check(testToolBar && entriesOf(testToolBar) == QStringList({ QStringLiteral("Save"),
-                                                                QStringLiteral("---"),
-                                                                QStringLiteral("Scratch Command") }),
+    check(testToolBar && entriesOf(testToolBar) == QStringList({ QStringLiteral("Save"), QStringLiteral("---"),
+                                                                 QStringLiteral("Scratch Command") }),
           "the tool bar holds the sorted contributions with a separator between its groups",
           testToolBar ? entriesOf(testToolBar).join(QLatin1Char(' ')) : QString());
     check(testToolBar && testToolBar->actions().contains(saveAction) && testToolBar->isVisible(),
@@ -365,7 +364,7 @@ int main(int argc, char* argv[])
         appWindow.setupUi();
         settle();
 
-        auto* claimed = appWindow.getToolBar(QString(DebugToolBarTarget));
+        auto* claimed = appWindow.toolBar(QString(DebugToolBarTarget));
         check(claimed && claimed->objectName() == QStringLiteral("app-debug-bar"),
               "the registered tool bar is the one that target hands back");
         check(claimed && entriesOf(claimed).contains(QStringLiteral("Copy")),
@@ -400,8 +399,8 @@ int main(int argc, char* argv[])
         settle();
     });
     check(fileMenu->actions().size() == fileEntriesBefore, "a contribution without a command is left out");
-    check(orphanWarnings.size() == 1 && orphanWarnings.first().contains(QStringLiteral("test/orphan"))
-              && orphanWarnings.first().contains(QStringLiteral("Test/Ghost")),
+    check(orphanWarnings.size() == 1 && orphanWarnings.first().contains(QStringLiteral("test/orphan")) &&
+              orphanWarnings.first().contains(QStringLiteral("Test/Ghost")),
           "the unplaceable contribution is reported once, naming itself and its command",
           orphanWarnings.join(QLatin1Char(' ')));
 
@@ -412,8 +411,7 @@ int main(int argc, char* argv[])
         { QStringLiteral("Test/Ghost"), QStringLiteral("Test"), QStringLiteral("Ghost Command") });
     const auto laterWarnings = warningsDuring(settle);
     check(fileMenu->actions().size() > fileEntriesBefore, "the contribution is placed once its command exists");
-    check(laterWarnings.isEmpty(), "a placed contribution has nothing to report",
-          laterWarnings.join(QLatin1Char(' ')));
+    check(laterWarnings.isEmpty(), "a placed contribution has nothing to report", laterWarnings.join(QLatin1Char(' ')));
 
     // Unregistering the command takes its QAction away, so the entry it made disappears too — the
     // menu no longer shows something the catalog has forgotten. Its contribution goes with it, so
@@ -490,10 +488,9 @@ int main(int argc, char* argv[])
     auto* typoAction = window.commandAction(QStringLiteral("Test/Typo"));
     check(typoAction && !debugToolBar->actions().contains(typoAction),
           "a contribution naming an unregistered action set is not placed");
-    check(typoWarnings.size() == 1 && typoWarnings.first().contains(QStringLiteral("test/typo"))
-              && typoWarnings.first().contains(QStringLiteral("test/typo-set")),
-          "the unregistered action set is reported once, naming the contribution",
-          typoWarnings.join(QLatin1Char(' ')));
+    check(typoWarnings.size() == 1 && typoWarnings.first().contains(QStringLiteral("test/typo")) &&
+              typoWarnings.first().contains(QStringLiteral("test/typo-set")),
+          "the unregistered action set is reported once, naming the contribution", typoWarnings.join(QLatin1Char(' ')));
 
     // Registering the set and adding an unrelated contribution cause the next build, which places
     // the entry that had to wait and does not repeat the warning.

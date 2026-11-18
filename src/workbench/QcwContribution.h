@@ -38,7 +38,7 @@ inline constexpr QLatin1StringView kToolBarTargetPrefix { "ToolBar/" };
  * the toolbar name prefixed with "ToolBar/" ("ToolBar/Main"). Both are placed by the window
  * and both go through the same sorter: the menu a window owns is filled from the contributions
  * naming its id, and a QToolBar is created for a "ToolBar/" target the first time a
- * contribution names it — see QcwWindow::getToolBar() and QcwWindow::registeredToolBars().
+ * contribution names it — see QcwWindow::toolBar() and QcwWindow::registeredToolBars().
  *
  * @par id
  * The contribution id is stable and namespaced, and is what other contributions use to

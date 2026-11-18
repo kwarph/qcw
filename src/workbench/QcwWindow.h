@@ -62,8 +62,10 @@ class QcwTopicService;
  * Applications add commands by registering QcwCommandInfo in QcwCommandRegistry and placing it
  * with a contribution; ids that belong to one application stay out of QcwWindowActionIds.
  *
- * getMenu() and registeredMenus() read the menu table, and getToolBar() and registeredToolBars()
+ * menu() and registeredMenus() read the menu table, and toolBar() and registeredToolBars()
  * the tool bar table; the entries in both are command QActions and answer to commandAction().
+ * A subclass registers its own menu in the same table, so a view looks up a standard menu and a
+ * profile's Build menu the same way; perspective action sets decide which contributions fill it.
  *
  * @par State
  * saveStateToFile() writes the complete window state — geometry, view identity,
@@ -270,43 +272,31 @@ public:
     QcwTabFolder* createDetachedView(const QString& type, const QString& title, const QList<QVariant>& args = {});
 
     /**
-     * @brief Looks up a registered menu.
-     * @param menuId The menu id, e.g. QcwWindowActionIds::MenuFile.
+     * @brief The menu registered under @p menuId.
+     * @param menuId The menu id: a QcwWindowActionIds::Menu* value, or an application menu id
+     *        such as a profile's Build menu.
      * @return The menu, or nullptr for an unknown id.
-     * @details The menus the window builds itself are registered here, so this is how a subclass
-     *          or a test reaches a built menu; the entries in it are command QActions.
-     * @see commandAction()
+     *
+     * @details Every menu a window shows is registered in registeredMenus() and filled from
+     * the contributions whose target equals its id. That includes the standard menus and a
+     * subclass's own menus, so a view reaches either one the same way. A missing target simply
+     * contributes nothing; a menu with no contributions stays empty.
+     * @see registeredMenus(), commandAction()
      */
-    QMenu* getMenu(const QString& menuId) const;
+    QMenu* menu(const QString& menuId) const;
 
     /**
-     * @brief Looks up the tool bar built for a contribution target.
+     * @brief The tool bar registered for @p target.
      * @param target The target id, e.g. QcwWindowActionIds::ToolBarMain.
      * @return The tool bar, or nullptr when no contribution named that target and none was
      *         registered under it.
      * @details A tool bar appears for every target a contribution names, built at the window's
-     *          first target build in setupUi() or restoreStateFromFile(), so this is how a
-     *          subclass or a test reaches one the contribution system filled; the entries in it
-     *          are command QActions, exactly as in a menu.
+     *          first target build in setupUi() or restoreStateFromFile(). The entries are
+     *          command QActions, exactly as in a menu.
      * @see registeredToolBars(), commandAction()
      */
-    QToolBar* getToolBar(const QString& target) const;
+    QToolBar* toolBar(const QString& target) const;
 
-    /**
-     * @brief The command QAction that carries @p commandId in this window.
-     * @param commandId The command id, e.g. QcwWindowActionIds::ActionSave or an application id.
-     * @return The window's command QAction, or nullptr when @p commandId is not in the catalog.
-     *
-     * @details The action is created on first use and mirrors the catalogued QcwCommandInfo and
-     *          the handler resolveHandler() finds, so its text, icon, shortcut, enabled, visible
-     *          and checked states are what the menus, toolbars and palette show. It is not the
-     *          handler: asking for the handler itself is resolveHandler()'s job, and running the
-     *          command is executeCommand()'s. Look the command up again when it is about to be
-     *          used rather than caching this pointer, because an unregistered command drops its
-     *          action.
-     * @see QcwCommandRegistry, commandAction(), resolveHandler(), executeCommand()
-     */
-    QAction* resolveCommand(const QString& commandId);
 
     // --- Handler and command execution ------------------------------------------------
 
@@ -588,17 +578,18 @@ protected:
     virtual bool restoreMoreState(QXmlStreamReader& reader);
 
     /**
-     * @brief The menu table backing getMenu().
+     * @brief The menu table backing menu().
      * @return A mutable reference to the id-to-menu map.
-     * @details Keys are a QcwWindowActionIds::Menu* value, and a menu is filled from the
-     *          contributions whose target equals its key, so a subclass that adds a menu here
-     *          gets one the sorter places entries in. The standard menus are inserted while the
-     *          window is constructed.
+     * @details Keys are a QcwWindowActionIds::Menu* value or an application menu id such as a
+     *          profile's Build menu, and every menu is filled from the contributions whose
+     *          target equals its key; a subclass that adds a menu here gets one the sorter
+     *          places entries in. The standard menus are inserted while the window is
+     *          constructed.
      */
     QMap<QString, QMenu*>& registeredMenus();
 
     /**
-     * @brief The tool bar table backing getToolBar().
+     * @brief The tool bar table backing toolBar().
      * @return A mutable reference to the target-to-tool-bar map.
      * @details Keys are contribution targets ("ToolBar/Main"), and a tool bar is filled from the
      *          contributions whose target equals its key. Registering one here is how a subclass

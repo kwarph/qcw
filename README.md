@@ -162,6 +162,12 @@ three digits move like this:
 | An addition — a new class, method, signal, command or topic, or a deprecation that keeps the old API working; existing applications and compiled plugins keep working | minor, `2.x.0` |
 | A break — removing or renaming public API, changing a signature, behaviour or ownership contract, raising the minimum Qt version, or changing a plugin interface's vtable or IID | major, `x.0.0` |
 
+> **2.2.0 compatibility note — deliberate ABI break.** This release removes the
+> `getMenu()`, `getToolBar()` and `resolveCommand()` entry points (and the short-lived
+> `named*` menu/action helpers) in favour of `menu()`, `toolBar()` and `commandAction()`.
+> Rebuild dependent plugins. QCW is still pre-adoption, so this break ships as the minor
+> release 2.2.0 instead of a new major.
+
 The docking widgets version independently, as **qcw-docking** 1.x. QCW 2.x requires a
 qcwdocking 1.x release; the installed `qcwConfig.cmake` asks for one through
 `find_dependency(qcwdocking 1.0 REQUIRED)`. A docking change that removes or changes its public
@@ -524,10 +530,11 @@ refreshes every command action it has built.
 
 A menu entry *is* the command's `QAction`, which the window creates on demand in
 `commandAction()`. It mirrors the catalogued info for text, icon, shortcut and checkable state, and
-the resolved handler for enabled, visible and checked state. A command no scope handles is
-disabled and hidden — and since Qt disables an invisible `QAction` too, its shortcut goes quiet
-with it. The entry reappears on its own the moment a view that handles it becomes current, so
-nothing has to rebuild the menu.
+the resolved handler for enabled, visible and checked state. A command no scope handles stays
+in place, disabled and greyed out; only a handler that reports `isVisible() == false` withdraws
+the entry (and, because Qt disables an invisible `QAction`, its shortcut). The entry re-enables
+on its own the moment a view that handles it becomes current, so nothing has to rebuild the
+menu.
 
 The window builds File, Edit, Window and Help and their Appearance, New View and Perspective
 submenus from the contributions registered for them, and puts a separator wherever `groupId`

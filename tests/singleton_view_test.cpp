@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 
         bool offersSingleton = false;
         bool offersPlain = false;
-        if (auto newViewMenu = window.getMenu(QcwWindowActionIds::MenuNewView))
+        if (auto newViewMenu = window.menu(QcwWindowActionIds::MenuNewView))
         {
             for (auto* action : newViewMenu->actions())
             {

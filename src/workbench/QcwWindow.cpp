@@ -935,24 +935,14 @@ QcwTabFolder* QcwWindow::createDetachedView(const QString& type, const QString& 
     return folder;
 }
 
-QMenu* QcwWindow::getMenu(const QString& menuId) const
+QMenu* QcwWindow::menu(const QString& menuId) const
 {
     return impl->menus.value(menuId);
 }
 
-QToolBar* QcwWindow::getToolBar(const QString& target) const
+QToolBar* QcwWindow::toolBar(const QString& target) const
 {
     return impl->toolBars.value(target);
-}
-
-QAction* QcwWindow::resolveCommand(const QString& commandId)
-{
-    if (commandId.isEmpty() || !commandRegistry->contains(commandId))
-    {
-        return nullptr;
-    }
-
-    return commandAction(commandId);
 }
 
 void QcwWindow::registerHandler(const QString& commandId, QcwCommandHandler* handler)

@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
               paletteEntry->shortcut() == QKeySequence(QStringLiteral("Ctrl+Shift+P")),
           "the command QAction carries the catalogued label and shortcut");
 
-    auto* windowMenu = window.getMenu(QcwWindowActionIds::MenuWindow);
+    auto* windowMenu = window.menu(QcwWindowActionIds::MenuWindow);
     check(windowMenu && windowMenu->actions().contains(paletteEntry), "the Window menu offers the palette");
 
     paletteEntry->trigger();

@@ -225,7 +225,7 @@ void QcwCommandPalettePrivate::buildCommands()
         for (const auto& info : commandRegistry->commands())
         {
             const auto category = info.category.isEmpty() ? QcwCommandPalette::tr("Application") : info.category;
-            auto* action = window->resolveCommand(info.id);
+            auto* action = window->commandAction(info.id);
             groups[category].append({ info.id, info.label, info.description, info.defaultShortcut, action });
         }
     }
@@ -328,7 +328,7 @@ void QcwCommandPalettePrivate::triggerCurrent()
 
         // The command QAction the window resolves carries the window's own id, which is what
         // Remove This Window needs as its target, so the palette has no command-specific path.
-        auto* action = theWindow->resolveCommand(commandId);
+        auto* action = theWindow->commandAction(commandId);
         if (!action || !action->isEnabled())
         {
             return;
