@@ -95,4 +95,4 @@ QcwView* TextEditorCreator::doCreate(QWidget* parent, const QList<QVariant>& arg
     return editor;
 }
 
-QCW_PLUGIN_IMPLEMENT(TextEditorCreator, "TextEditor")
+QCW_PLUGIN_IMPLEMENT(TextEditorCreator, "demo.TextEditor")

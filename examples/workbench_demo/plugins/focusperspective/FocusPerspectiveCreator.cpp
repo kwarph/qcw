@@ -22,4 +22,4 @@ QcwPerspective* FocusPerspectiveCreator::doCreate(QcwWindow* window)
     return new FocusPerspective { window };
 }
 
-QCW_PLUGIN_IMPLEMENT(FocusPerspectiveCreator, "FocusPerspective")
+QCW_PLUGIN_IMPLEMENT(FocusPerspectiveCreator, "demo.FocusPerspective")

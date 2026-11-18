@@ -145,4 +145,4 @@ void NotesPlugin::addNoteAndShow()
     service->showNotes(target);
 }
 
-QCW_PLUGIN_IMPLEMENT(NotesPlugin, "Notes")
+QCW_PLUGIN_IMPLEMENT(NotesPlugin, "demo.Notes")

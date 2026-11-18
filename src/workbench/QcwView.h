@@ -108,7 +108,7 @@ public:
      * @brief The handlers this view provides, keyed by command id.
      * @details QcwWindow collects them while this view is current and disconnects them when
      * another view takes over. Returning a handler here is what makes the same command run
-     * different code in different views (Edit/Copy copies text here, a file path there).
+     * different code in different views (Edit/copy copies text here, a file path there).
      *
      * @note The view owns the handlers; the window only borrows them. A null entry is
      *       ignored. Return the same handler on every call.

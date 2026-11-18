@@ -105,7 +105,7 @@ QStringList warningsDuring(const std::function<void()>& work)
     return gWarnings;
 }
 
-/// Handles File/Save and Edit/Copy, like a text editor would.
+/// Handles File/save and Edit/copy, like a text editor would.
 class EditorCommandView : public QcwView
 {
 public:
@@ -137,7 +137,7 @@ public:
     QcwLambdaCommandHandler* copyHandler { nullptr };
 };
 
-/// Handles Edit/Delete and a command of its own, leaving File/Save to nobody.
+/// Handles Edit/delete and a command of its own, leaving File/save to nobody.
 class ProjectCommandView : public QcwView
 {
 public:
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
                                                  QString(QcwWindowActionIds::MenuEdit),
                                                  QString(ScratchCommand),
                                                  {},
-                                                 QStringLiteral("edit.undo"),
+                                                 QStringLiteral("Edit/undo"),
                                                  QStringLiteral("test-group"),
                                                  true });
 
@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
                                                      QString(QcwWindowActionIds::MenuFile),
                                                      QStringLiteral("Test/Ghost"),
                                                      {},
-                                                     QStringLiteral("file.save"),
+                                                     QStringLiteral("File/save"),
                                                      QStringLiteral("file-project"),
                                                      true });
         settle();

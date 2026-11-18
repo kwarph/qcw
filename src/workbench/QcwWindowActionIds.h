@@ -14,8 +14,7 @@ QT_BEGIN_NAMESPACE
  * @details Ids are commands the window, the workbench or an application registers in
  * QcwCommandRegistry and places with a QcwContribution; the menu ids double as the
  * contribution targets that fill those menus. Built-in ids have no namespace prefix;
- * application and plugin ids must carry one (see the naming convention in the design
- * document).
+ * application and plugin ids must carry one (see docs/qcw-id-naming-conventions.md).
  */
 struct QcwWindowActionIds
 {
@@ -30,54 +29,54 @@ struct QcwWindowActionIds
 
     // --- File -------------------------------------------------------------------------
 
-    static constexpr QLatin1String ActionOpenAppDir { "File/OpenAppDir" };
-    static constexpr QLatin1String ActionOpenLogDir { "File/OpenLogDir" };
-    static constexpr QLatin1String ActionExit { "File/Exit" };
+    static constexpr QLatin1String ActionOpenAppDir { "File/openAppDir" };
+    static constexpr QLatin1String ActionOpenLogDir { "File/openLogDir" };
+    static constexpr QLatin1String ActionExit { "File/exit" };
 
-    static constexpr QLatin1String ActionSave { "File/Save" };
-    static constexpr QLatin1String ActionSaveAs { "File/SaveAs" };
-    static constexpr QLatin1String ActionSaveAll { "File/SaveAll" };
+    static constexpr QLatin1String ActionSave { "File/save" };
+    static constexpr QLatin1String ActionSaveAs { "File/saveAs" };
+    static constexpr QLatin1String ActionSaveAll { "File/saveAll" };
 
     // --- Edit -------------------------------------------------------------------------
 
-    static constexpr QLatin1String ActionPreferences { "Edit/Preferences" };
+    static constexpr QLatin1String ActionPreferences { "Edit/preferences" };
 
-    static constexpr QLatin1String ActionUndo { "Edit/Undo" };
-    static constexpr QLatin1String ActionRedo { "Edit/Redo" };
-    static constexpr QLatin1String ActionCut { "Edit/Cut" };
-    static constexpr QLatin1String ActionCopy { "Edit/Copy" };
-    static constexpr QLatin1String ActionPaste { "Edit/Paste" };
-    static constexpr QLatin1String ActionDelete { "Edit/Delete" };
-    static constexpr QLatin1String ActionRename { "Edit/Rename" };
-    static constexpr QLatin1String ActionSelectAll { "Edit/SelectAll" };
+    static constexpr QLatin1String ActionUndo { "Edit/undo" };
+    static constexpr QLatin1String ActionRedo { "Edit/redo" };
+    static constexpr QLatin1String ActionCut { "Edit/cut" };
+    static constexpr QLatin1String ActionCopy { "Edit/copy" };
+    static constexpr QLatin1String ActionPaste { "Edit/paste" };
+    static constexpr QLatin1String ActionDelete { "Edit/delete" };
+    static constexpr QLatin1String ActionRename { "Edit/rename" };
+    static constexpr QLatin1String ActionSelectAll { "Edit/selectAll" };
 
     // --- View (handlers live in views; the application catalogues and places them) -----
 
-    static constexpr QLatin1String ActionFilter { "View/Filter" };
-    static constexpr QLatin1String ActionRefresh { "View/Refresh" };
+    static constexpr QLatin1String ActionFilter { "View/filter" };
+    static constexpr QLatin1String ActionRefresh { "View/refresh" };
 
     // --- Window -----------------------------------------------------------------------
 
-    static constexpr QLatin1String ActionNewWindow { "Window/NewWindow" };
-    static constexpr QLatin1String ActionRemoveWindow { "Window/RemoveWindow" };
-    static constexpr QLatin1String ActionCommandPalette { "Window/CommandPalette" };
+    static constexpr QLatin1String ActionNewWindow { "Window/newWindow" };
+    static constexpr QLatin1String ActionRemoveWindow { "Window/removeWindow" };
+    static constexpr QLatin1String ActionCommandPalette { "Window/commandPalette" };
 
-    static constexpr QLatin1String ActionShowToolBar { "Window/Appearance/ShowToolBar" };
-    static constexpr QLatin1String ActionShowStatusBar { "Window/Appearance/ShowStatusBar" };
-    static constexpr QLatin1String ActionThemes { "Window/Appearance/Themes" };
+    static constexpr QLatin1String ActionShowToolBar { "Window/Appearance/showToolBar" };
+    static constexpr QLatin1String ActionShowStatusBar { "Window/Appearance/showStatusBar" };
+    static constexpr QLatin1String ActionThemes { "Window/Appearance/themes" };
 
-    static constexpr QLatin1String ActionOpenPerspective { "Window/Perspective/OpenPerspective" };
-    static constexpr QLatin1String ActionSavePerspectiveAs { "Window/Perspective/SavePerspectiveAs" };
-    static constexpr QLatin1String ActionResetPerspective { "Window/Perspective/ResetPerspective" };
-    static constexpr QLatin1String ActionClosePerspective { "Window/Perspective/ClosePerspective" };
-    static constexpr QLatin1String ActionCloseAllPerspectives { "Window/Perspective/CloseAllPerspectives" };
+    static constexpr QLatin1String ActionOpenPerspective { "Window/Perspective/openPerspective" };
+    static constexpr QLatin1String ActionSavePerspectiveAs { "Window/Perspective/savePerspectiveAs" };
+    static constexpr QLatin1String ActionResetPerspective { "Window/Perspective/resetPerspective" };
+    static constexpr QLatin1String ActionClosePerspective { "Window/Perspective/closePerspective" };
+    static constexpr QLatin1String ActionCloseAllPerspectives { "Window/Perspective/closeAllPerspectives" };
 
     static constexpr QLatin1String MenuNewView { "Window/NewView" };
 
     // --- Help -------------------------------------------------------------------------
 
-    static constexpr QLatin1String ActionAbout { "Help/About" };
-    static constexpr QLatin1String ActionAboutPlugins { "Help/AboutPlugins" };
+    static constexpr QLatin1String ActionAbout { "Help/about" };
+    static constexpr QLatin1String ActionAboutPlugins { "Help/aboutPlugins" };
 
     // --- Toolbars ---------------------------------------------------------------------
 

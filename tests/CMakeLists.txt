@@ -124,6 +124,10 @@ qt_add_executable(id_catalog_dump_test
     id_catalog_dump_test.cpp
 )
 
+qt_add_executable(id_conventions_test
+    id_conventions_test.cpp
+)
+
 qt_add_executable(topic_service_test
     topic_service_test.cpp
 )
@@ -179,6 +183,7 @@ foreach(target IN ITEMS
     command_action_test
     builtin_commands_test
     id_catalog_dump_test
+    id_conventions_test
     topic_service_test
     window_topic_teardown_test
     view_window_topic_test

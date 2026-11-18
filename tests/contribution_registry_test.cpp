@@ -45,7 +45,7 @@ void clearRegistries()
 
 QcwContribution make(const QString& id,
                      const QString& target = QStringLiteral("Edit"),
-                     const QString& commandId = QStringLiteral("Edit/Copy"),
+                     const QString& commandId = QStringLiteral("Edit/copy"),
                      const QString& actionSetId = {})
 {
     QcwContribution contribution;
@@ -82,12 +82,12 @@ void testReplaceWarning()
 {
     clearRegistries();
 
-    contributionRegistry->registerContribution(make("edit.copy"));
+    contributionRegistry->registerContribution(make("Edit/copy"));
 
     // The same declaration again is the language-change path: nothing moved, so nothing is said.
     const auto same = warningsDuring([&]
     {
-        contributionRegistry->registerContribution(make("edit.copy"));
+        contributionRegistry->registerContribution(make("Edit/copy"));
     });
     check(same.isEmpty(), "re-registering an identical contribution warns nothing",
           same.join(QLatin1Char(' ')));
@@ -95,9 +95,9 @@ void testReplaceWarning()
     // A duplicate id that says something else does replace the entry, and that is worth reporting.
     const auto moved = warningsDuring([&]
     {
-        contributionRegistry->registerContribution(make("edit.copy", QStringLiteral("File")));
+        contributionRegistry->registerContribution(make("Edit/copy", QStringLiteral("File")));
     });
-    check(moved.size() == 1 && moved.first().contains(QStringLiteral("edit.copy")),
+    check(moved.size() == 1 && moved.first().contains(QStringLiteral("Edit/copy")),
           "a duplicate id with different content warns once", moved.join(QLatin1Char(' ')));
     check(contributionRegistry->contributionsFor(QStringLiteral("File")).size() == 1,
           "the replacement still happens");
@@ -109,10 +109,10 @@ void testRegisterAndLookup()
 {
     clearRegistries();
 
-    check(contributionRegistry->registerContribution(make("edit.copy")), "register a valid contribution");
+    check(contributionRegistry->registerContribution(make("Edit/copy")), "register a valid contribution");
 
     const auto contributions = contributionRegistry->contributionsFor(QStringLiteral("Edit"));
-    check(contributions.size() == 1 && contributions[0].id == QStringLiteral("edit.copy"),
+    check(contributions.size() == 1 && contributions[0].id == QStringLiteral("Edit/copy"),
           "lookup returns the registered contribution", QString::number(contributions.size()));
 }
 
@@ -120,7 +120,7 @@ void testReplaceEmitsOnce()
 {
     clearRegistries();
 
-    contributionRegistry->registerContribution(make("edit.copy"));
+    contributionRegistry->registerContribution(make("Edit/copy"));
 
     int emitted = 0;
     QMetaObject::Connection conn =
@@ -129,7 +129,7 @@ void testReplaceEmitsOnce()
         ++emitted;
     });
 
-    check(contributionRegistry->registerContribution(make("edit.copy", QStringLiteral("File"))),
+    check(contributionRegistry->registerContribution(make("Edit/copy", QStringLiteral("File"))),
           "replace a contribution");
     QObject::disconnect(conn);
 
@@ -144,7 +144,7 @@ void testUnregister()
 {
     clearRegistries();
 
-    contributionRegistry->registerContribution(make("edit.copy"));
+    contributionRegistry->registerContribution(make("Edit/copy"));
 
     int emitted = 0;
     QMetaObject::Connection conn =
@@ -153,13 +153,13 @@ void testUnregister()
         ++emitted;
     });
 
-    check(contributionRegistry->unregisterContribution(QStringLiteral("edit.copy")),
+    check(contributionRegistry->unregisterContribution(QStringLiteral("Edit/copy")),
           "unregister an existing contribution");
     QObject::disconnect(conn);
 
     check(emitted == 1, "unregister emits contributionsChanged once", QString::number(emitted));
     check(contributionRegistry->allContributions().isEmpty(), "the registry is empty after unregister");
-    check(!contributionRegistry->unregisterContribution(QStringLiteral("edit.copy")),
+    check(!contributionRegistry->unregisterContribution(QStringLiteral("Edit/copy")),
           "unregistering a missing id returns false");
 }
 
@@ -170,8 +170,8 @@ void testInvalidIdsRejected()
     check(!contributionRegistry->registerContribution(make(QString())), "empty id rejected");
     check(!contributionRegistry->registerContribution(make(QStringLiteral("has space"))), "id with space rejected");
     check(!contributionRegistry->registerContribution(make(QStringLiteral("with:colon"))), "id with colon rejected");
-    check(!contributionRegistry->registerContribution(make("edit.copy", QString())), "empty target rejected");
-    check(!contributionRegistry->registerContribution(make("edit.copy", QStringLiteral("Edit"), QString())),
+    check(!contributionRegistry->registerContribution(make("Edit/copy", QString())), "empty target rejected");
+    check(!contributionRegistry->registerContribution(make("Edit/copy", QStringLiteral("Edit"), QString())),
           "empty commandId rejected");
 
     check(contributionRegistry->allContributions().isEmpty(), "rejected registrations leave the registry empty");
@@ -182,11 +182,11 @@ void testUnregisterContributionsOf()
     clearRegistries();
 
     contributionRegistry->registerContribution(
-        make("edit.copy", QStringLiteral("Edit"), QStringLiteral("Edit/Copy"), QStringLiteral("edit")));
+        make("Edit/copy", QStringLiteral("Edit"), QStringLiteral("Edit/copy"), QStringLiteral("edit")));
     contributionRegistry->registerContribution(
-        make("edit.paste", QStringLiteral("Edit"), QStringLiteral("Edit/Paste"), QStringLiteral("edit")));
+        make("Edit/paste", QStringLiteral("Edit"), QStringLiteral("Edit/paste"), QStringLiteral("edit")));
     contributionRegistry->registerContribution(
-        make("edit.cut", QStringLiteral("Edit"), QStringLiteral("Edit/Cut"), QStringLiteral("debug")));
+        make("Edit/cut", QStringLiteral("Edit"), QStringLiteral("Edit/cut"), QStringLiteral("debug")));
 
     int emitted = 0;
     QMetaObject::Connection conn =
@@ -201,7 +201,7 @@ void testUnregisterContributionsOf()
     check(removed == 2, "unregisterContributionsOf counts what it removed", QString::number(removed));
     check(emitted == 1, "it emits once", QString::number(emitted));
     check(contributionRegistry->allContributions().size() == 1 &&
-              contributionRegistry->allContributions()[0].id == QStringLiteral("edit.cut"),
+              contributionRegistry->allContributions()[0].id == QStringLiteral("Edit/cut"),
           "only the matching action set is gone");
 
     check(contributionRegistry->unregisterContributionsOf(QStringLiteral("edit")) == 0,

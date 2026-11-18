@@ -71,30 +71,25 @@ constexpr QLatin1String latin1(const char* text)
 }
 
 const ToolBarEntry kToolBarEntries[] = {
-    { QcwWindowActionIds::ToolBarMain, latin1("demo/toolbar/main/newProject"), demo::ActionNewProject,
+    { QcwWindowActionIds::ToolBarMain, latin1("demo/ToolBar/Main/newProject"), demo::ActionNewProject,
       latin1("project") },
-    { QcwWindowActionIds::ToolBarMain, latin1("demo/toolbar/main/openProject"), demo::ActionOpenProject,
+    { QcwWindowActionIds::ToolBarMain, latin1("demo/ToolBar/Main/openProject"), demo::ActionOpenProject,
       latin1("project") },
-    { QcwWindowActionIds::ToolBarMain, latin1("demo/toolbar/main/newFile"), demo::ActionNewFile,
-      latin1("project") },
-    { QcwWindowActionIds::ToolBarMain, latin1("demo/toolbar/main/save"), QcwWindowActionIds::ActionSave,
+    { QcwWindowActionIds::ToolBarMain, latin1("demo/ToolBar/Main/newFile"), demo::ActionNewFile, latin1("project") },
+    { QcwWindowActionIds::ToolBarMain, latin1("demo/ToolBar/Main/save"), QcwWindowActionIds::ActionSave,
       latin1("save") },
-    { QcwWindowActionIds::ToolBarMain, latin1("demo/toolbar/main/saveAs"), QcwWindowActionIds::ActionSaveAs,
+    { QcwWindowActionIds::ToolBarMain, latin1("demo/ToolBar/Main/saveAs"), QcwWindowActionIds::ActionSaveAs,
       latin1("save") },
-    { QcwWindowActionIds::ToolBarMain, latin1("demo/toolbar/main/saveAll"), QcwWindowActionIds::ActionSaveAll,
+    { QcwWindowActionIds::ToolBarMain, latin1("demo/ToolBar/Main/saveAll"), QcwWindowActionIds::ActionSaveAll,
       latin1("save") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/undo"), QcwWindowActionIds::ActionUndo, latin1("undo") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/redo"), QcwWindowActionIds::ActionRedo, latin1("undo") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/cut"), QcwWindowActionIds::ActionCut, latin1("clipboard") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/copy"), QcwWindowActionIds::ActionCopy, latin1("clipboard") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/paste"), QcwWindowActionIds::ActionPaste,
-      latin1("clipboard") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/delete"), QcwWindowActionIds::ActionDelete,
-      latin1("clipboard") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/rename"), QcwWindowActionIds::ActionRename,
-      latin1("clipboard") },
-    { demo::ToolBarEdit, latin1("demo/toolbar/edit/selectAll"), QcwWindowActionIds::ActionSelectAll,
-      latin1("select") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/undo"), QcwWindowActionIds::ActionUndo, latin1("undo") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/redo"), QcwWindowActionIds::ActionRedo, latin1("undo") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/cut"), QcwWindowActionIds::ActionCut, latin1("clipboard") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/copy"), QcwWindowActionIds::ActionCopy, latin1("clipboard") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/paste"), QcwWindowActionIds::ActionPaste, latin1("clipboard") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/delete"), QcwWindowActionIds::ActionDelete, latin1("clipboard") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/rename"), QcwWindowActionIds::ActionRename, latin1("clipboard") },
+    { demo::ToolBarEdit, latin1("demo/ToolBar/Edit/selectAll"), QcwWindowActionIds::ActionSelectAll, latin1("select") },
 };
 
 } // namespace
@@ -161,16 +156,16 @@ void MainWindow::registerFileCommands()
     // QcwWindowActionIds. ProjectView handles them, so they answer while it is the current view
     // and sit greyed out while it is not: the contributions place them either way, and only a
     // handler decides whether they can run.
-    registerAppFileCommand(QString(demo::ActionNewProject), QStringLiteral("demo/file/newProject"),
+    registerAppFileCommand(QString(demo::ActionNewProject), QStringLiteral("demo/File/newProject"),
                            tr("New Project..."), QKeySequence::UnknownKey);
 
-    registerAppFileCommand(QString(demo::ActionOpenProject), QStringLiteral("demo/file/openProject"),
+    registerAppFileCommand(QString(demo::ActionOpenProject), QStringLiteral("demo/File/openProject"),
                            tr("Open Project..."), QKeySequence::Open);
 
-    registerAppFileCommand(QString(demo::ActionCloseProject), QStringLiteral("demo/file/closeProject"),
+    registerAppFileCommand(QString(demo::ActionCloseProject), QStringLiteral("demo/File/closeProject"),
                            tr("Close Project"), QKeySequence::UnknownKey);
 
-    registerAppFileCommand(QString(demo::ActionNewFile), QStringLiteral("demo/file/newFile"), tr("New File..."),
+    registerAppFileCommand(QString(demo::ActionNewFile), QStringLiteral("demo/File/newFile"), tr("New File..."),
                            QKeySequence::New);
 }
 
@@ -201,10 +196,10 @@ void MainWindow::registerViewCommands()
     // window already catalogues, so registering them here is what makes them searchable in the
     // command palette, and the contributions are what make them appear in the menu. ProjectView
     // supplies the handlers.
-    registerAppViewCommand(QString(QcwWindowActionIds::ActionFilter), QStringLiteral("demo/view/filter"),
+    registerAppViewCommand(QString(QcwWindowActionIds::ActionFilter), QStringLiteral("demo/View/filter"),
                            tr("Filter..."), tr("Filter the project files"));
 
-    registerAppViewCommand(QString(QcwWindowActionIds::ActionRefresh), QStringLiteral("demo/view/refresh"),
+    registerAppViewCommand(QString(QcwWindowActionIds::ActionRefresh), QStringLiteral("demo/View/refresh"),
                            tr("Refresh"), tr("Refresh the project tree"));
 }
 
@@ -257,7 +252,7 @@ void MainWindow::postSetupUi()
         return;
     }
 
-    auto* creator = pluginManager->getPluginT<QcwPerspectiveCreator>(QStringLiteral("ProjectPerspective"));
+    auto* creator = pluginManager->getPluginT<QcwPerspectiveCreator>(QStringLiteral("demo.ProjectPerspective"));
     if (!creator)
     {
         return;

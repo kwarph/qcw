@@ -52,11 +52,11 @@ int main(int argc, char* argv[])
 
     // --- Command metadata ------------------------------------------------------------
 
-    check(commandRegistry->contains(QcwWindowActionIds::ActionSave), "File/Save is catalogued");
-    check(commandRegistry->contains(QcwWindowActionIds::ActionCopy), "Edit/Copy is catalogued");
-    check(commandRegistry->contains(QcwWindowActionIds::ActionExit), "File/Exit is catalogued");
-    check(commandRegistry->contains(QcwWindowActionIds::ActionNewWindow), "Window/NewWindow is catalogued");
-    check(commandRegistry->contains(QcwWindowActionIds::ActionThemes), "Window/Appearance/Themes is catalogued");
+    check(commandRegistry->contains(QcwWindowActionIds::ActionSave), "File/save is catalogued");
+    check(commandRegistry->contains(QcwWindowActionIds::ActionCopy), "Edit/copy is catalogued");
+    check(commandRegistry->contains(QcwWindowActionIds::ActionExit), "File/exit is catalogued");
+    check(commandRegistry->contains(QcwWindowActionIds::ActionNewWindow), "Window/newWindow is catalogued");
+    check(commandRegistry->contains(QcwWindowActionIds::ActionThemes), "Window/Appearance/themes is catalogued");
 
     const auto saveInfo = commandRegistry->command(QcwWindowActionIds::ActionSave);
     check(saveInfo && saveInfo->category == QcwWindowActionIds::MenuFile, "Save is catalogued under File");
@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
     const auto fileSorted = QcwContributionSorter::sort(
         contributionRegistry->contributionsFor(QcwWindowActionIds::MenuFile), {}, QcwWindowActionIds::MenuFile);
     const QStringList fileIds = idsOf(fileSorted);
-    check(fileIds.contains(QStringLiteral("file.save")), "the sorted File menu contains Save");
-    check(fileIds.indexOf(QStringLiteral("file.save")) < fileIds.indexOf(QStringLiteral("file.exit")),
+    check(fileIds.contains(QStringLiteral("File/save")), "the sorted File menu contains Save");
+    check(fileIds.indexOf(QStringLiteral("File/save")) < fileIds.indexOf(QStringLiteral("File/exit")),
           "Save comes before Exit");
 
     const auto appearanceSorted =
@@ -87,11 +87,11 @@ int main(int argc, char* argv[])
                                     {}, QcwWindowActionIds::MenuWindowAppearance);
     const QStringList appearanceIds = idsOf(appearanceSorted);
     check(appearanceIds.size() == 3, "Window/Appearance has three entries", QString::number(appearanceIds.size()));
-    check(appearanceIds.indexOf(QStringLiteral("window.appearance.showToolBar")) <
-              appearanceIds.indexOf(QStringLiteral("window.appearance.showStatusBar")),
+    check(appearanceIds.indexOf(QStringLiteral("Window/Appearance/showToolBar")) <
+              appearanceIds.indexOf(QStringLiteral("Window/Appearance/showStatusBar")),
           "Show Toolbar comes before Show Status Bar");
-    check(appearanceIds.indexOf(QStringLiteral("window.appearance.showStatusBar")) <
-              appearanceIds.indexOf(QStringLiteral("window.appearance.themes")),
+    check(appearanceIds.indexOf(QStringLiteral("Window/Appearance/showStatusBar")) <
+              appearanceIds.indexOf(QStringLiteral("Window/Appearance/themes")),
           "Show Status Bar comes before Themes");
 
     // --- Idempotence -----------------------------------------------------------------

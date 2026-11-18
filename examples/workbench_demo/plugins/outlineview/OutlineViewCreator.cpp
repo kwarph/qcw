@@ -23,4 +23,4 @@ QcwView* OutlineViewCreator::doCreate(QWidget* parent, const QList<QVariant>& ar
     return new OutlineView { parent };
 }
 
-QCW_PLUGIN_IMPLEMENT(OutlineViewCreator, "OutlineView")
+QCW_PLUGIN_IMPLEMENT(OutlineViewCreator, "demo.OutlineView")

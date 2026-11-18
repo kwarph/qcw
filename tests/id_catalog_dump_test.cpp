@@ -102,13 +102,13 @@ int main(int argc, char* argv[])
 
     check(started, "the workbench starts with the dump enabled");
     check(hasLine(QStringLiteral("QCW command catalog (registered):")), "the dump announces the command catalog");
-    check(hasLine(QStringLiteral("  File/Save")), "the dump lists a built-in command");
+    check(hasLine(QStringLiteral("  File/save")), "the dump lists a built-in command");
     check(hasLine(QStringLiteral("  test/DumpCommand")), "the dump lists an application command");
     check(hasLine(QStringLiteral("QCW action set catalog (registered):")), "the dump announces the action set catalog");
     check(hasLine(QStringLiteral("  test/dump-set")), "the dump lists an action set");
     check(hasLine(QStringLiteral("QCW contribution catalog (registered):")),
           "the dump announces the contribution catalog");
-    check(hasLine(QStringLiteral("  file.save")), "the dump lists a built-in contribution");
+    check(hasLine(QStringLiteral("  Edit/copy")), "the dump lists a built-in contribution");
     check(hasLine(QStringLiteral("  test/dump/entry")), "the dump lists an application contribution");
 
     contributionRegistry->unregisterContribution(contribution.id);

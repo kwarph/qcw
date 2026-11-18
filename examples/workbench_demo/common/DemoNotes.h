@@ -31,13 +31,13 @@ namespace demo
 inline constexpr QLatin1String NotesCategory { "Tool" };
 
 /// The creator type of the notes plugin, as QcwPluginManager lists it.
-inline constexpr QLatin1String NotesPluginType { "Notes" };
+inline constexpr QLatin1String NotesPluginType { "demo.Notes" };
 
 /// The type of the notes view, as its creator reports it and saved state refers to it.
-inline constexpr QLatin1String NotesViewType { "NotesView" };
+inline constexpr QLatin1String NotesViewType { "demo.NotesView" };
 
 /// Id of the command that adds a note; the notes plugin registers the handler.
-inline constexpr QLatin1String ActionAddNote { "Notes/AddNote" };
+inline constexpr QLatin1String ActionAddNote { "demo/Notes/addNote" };
 
 /// QSettings group the notes preferences page edits.
 inline constexpr QLatin1String NotesSettingsGroup { "notes" };

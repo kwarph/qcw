@@ -47,4 +47,4 @@ QcwView* ProjectViewCreator::doCreate(QWidget* parent, const QList<QVariant>&)
     return new ProjectView { parent };
 }
 
-QCW_PLUGIN_IMPLEMENT(ProjectViewCreator, "ProjectView")
+QCW_PLUGIN_IMPLEMENT(ProjectViewCreator, "demo.ProjectView")

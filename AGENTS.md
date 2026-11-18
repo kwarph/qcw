@@ -359,6 +359,16 @@ reaches the views of a window whose private is already gone. `~QcwWindow` theref
 This does not contradict the singleton rule above — that one is about `Q_GLOBAL_STATIC` globals
 that stay valid for the whole process, this one about a single destructor.
 
+## Identifier naming
+
+Every stable id follows [`docs/qcw-id-naming-conventions.md`](docs/qcw-id-naming-conventions.md):
+`<owner>.<TypeName>` (exactly one dot) for concrete plugin/creator types and
+`<reverse-dns-domain>.<Interface>` for interface IIDs; `/`-separated paths for menus, tool bars,
+commands, contributions and action sets; UpperCamelCase for names, places, types and sets,
+lowerCamelCase for actions and payload keys. Built-in ids carry no owner; application and plugin
+ids carry their short-name owner. A dot qualifies a name and a slash walks a hierarchy — never mix
+the two.
+
 ## Versioning
 
 `CMakeLists.txt` holds the single version number, and a release tag is that number prefixed

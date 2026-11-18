@@ -24,4 +24,4 @@ QcwView* NotesViewCreator::doCreate(QWidget* parent, const QList<QVariant>& args
     return new NotesView { parent };
 }
 
-QCW_PLUGIN_IMPLEMENT(NotesViewCreator, "NotesView")
+QCW_PLUGIN_IMPLEMENT(NotesViewCreator, "demo.NotesView")

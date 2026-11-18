@@ -276,7 +276,7 @@ To customize the window, subclass `QcwWindow` and override:
 Catalogue the commands your application adds and place them with contributions — that is what
 both the menus and the command palette read; see *Menus, commands and tool bars* below.
 
-See [`examples/workbench_demo/MainWindow.cpp`](examples/workbench_demo/MainWindow.cpp) for the
+See [`examples/workbench_demo/app/MainWindow.cpp`](examples/workbench_demo/app/MainWindow.cpp) for the
 full example, including the demo's own View menu, its contributions into File and the file and
 edit tool bars that share the window's command actions.
 
@@ -384,7 +384,7 @@ void ProjectPerspective::createInitialLayout()
     auto* tools = container->createFolder(central, qcw::LeftDockArea);
     container->setEmptyFolderAction(tools, qcw::EmptyFolderAction::Keep);
 
-    const auto [view, icon] = getOrCreateView(QStringLiteral("ProjectView"));
+    const auto [view, icon] = getOrCreateView(QStringLiteral("demo.ProjectView"));
     if (view)
     {
         tools->addTab(view, view->windowTitle(), icon);
@@ -517,7 +517,7 @@ QHash<QString, QcwCommandHandler*> MyView::commandHandlers() const
 ```
 
 `QcwWindow::resolveHandler()` asks the current view first, then the current perspective, then the
-window itself, then `QcwWorkbench::globalHandler()` — the first handler found wins. So `Edit/Copy`
+window itself, then `QcwWorkbench::globalHandler()` — the first handler found wins. So `Edit/copy`
 copies text in an editor and a file path in the project tree, and only the view on screen decides
 which one runs. The window re-reads `commandHandlers()` whenever the current view changes and
 refreshes every command action it has built.
@@ -536,14 +536,14 @@ those exactly the same way:
 
 ```cpp
 QcwCommandInfo info;
-info.id = QStringLiteral("myapp/Project/Open");
+info.id = QStringLiteral("demo/File/openProject");
 info.category = QString(QcwWindowActionIds::MenuFile);
 info.label = tr("Open Project...");
 info.defaultShortcut = QKeySequence::Open;
 commandRegistry->registerCommand(info);
 
 QcwContribution contribution;
-contribution.id = QStringLiteral("myapp/file/openProject");
+contribution.id = QStringLiteral("demo/File/openProject");
 contribution.target = QString(QcwWindowActionIds::MenuFile);
 contribution.commandId = info.id;
 contribution.groupId = QStringLiteral("file-project");
@@ -567,24 +567,35 @@ is how a user finds a command whose view is not open.
 
 ### Command and contribution id naming
 
-Every id — command, contribution, action set, menu target — uses only `A-Z a-z 0-9 . / _ -`.
-`/` marks hierarchy, `.` separates words inside a segment, and spaces, colons and backslashes are
-not allowed. Each registry checks this when you register and rejects a malformed id with a
-`qWarning`.
+The full convention — interface IIDs, concrete plugin types, commands, contributions, action sets,
+menu and tool bar targets, categories and payload keys — is
+[`docs/qcw-id-naming-conventions.md`](docs/qcw-id-naming-conventions.md). The short version:
 
 | Kind | Format | Example |
 |---|---|---|
-| Command id | `<namespace>/<Domain>/<Name>` | `File/Save`, `myplugin/Project/Open` |
-| Contribution id | `<namespace>/<target-path>/<name>`, lowercase | `file.save`, `myplugin/project/open` |
-| Action set id | `<namespace>/<set-name>`, lowercase | `debug`, `myplugin/project` |
-| Menu target | `<MenuPath>`, PascalCase; equals the menu's id in `registeredMenus()` | `File`, `Window/Perspective` |
-| Toolbar target | `ToolBar/<Name>` | `ToolBar/Main` |
+| Command | `[owner/]<MenuPath>/<action>` | `File/save`, `demo/File/newProject` |
+| Contribution | `[owner/]<TargetPath>/<action>` | `File/save`, `demo/File/newProject` |
+| Action set | `[owner/]<SetName>` | `Debug`, `demo/Debug` |
+| Menu target | UpperCamelCase path | `File`, `Window/Perspective` |
+| Tool bar target | `ToolBar/<Name>` | `ToolBar/Main` |
+| Concrete plugin type | `<owner>.<TypeName>` | `demo.ProjectView` |
+| Interface IID | `<reverse-dns-domain>.<Interface>` | `org.qcw.QcwViewCreator` |
 
-Built-in ids carry **no** namespace prefix and live in `QcwWindowActionIds`; application and plugin
-ids **must** carry their own prefix. Keep an application's ids in one header of its own — the demo
-uses `plugins/common/DemoServices.h` — and a plugin's inside the plugin. An id is a contract only
-with its own owner, so a plugin never publishes ids for someone else to name in a `before`;
-cross-plugin contracts come from interfaces, not from ids.
+- A dot qualifies a name; a slash walks a hierarchy; the two are never mixed.
+- Path segments naming places, categories, types or sets are UpperCamelCase; leaves naming actions
+  or data keys are lowerCamelCase.
+- Built-in ids carry **no** owner prefix; application and plugin ids must carry their short-name
+  owner (`demo`, `acme`), never a reverse-DNS prefix.
+- A contribution id repeats its target path and the action it places, so it may equal the command
+  id when the target is the command's own menu. `before`/`after` name a contribution id or a
+  command id in the same target; `before = "@start"` pins an entry to the top.
+- Each registry checks the character set and rejects a malformed id with a `qWarning`; the
+  structural rules are enforced by tests, so a third-party id is never rejected for style alone.
+
+Keep an application's ids in one header of its own — the demo uses
+`examples/workbench_demo/common/DemoServices.h` — and a plugin's inside the plugin. An id is a
+contract only with its own owner, so a plugin never publishes ids for someone else to name in a
+`before`; cross-plugin contracts come from interfaces, not from ids.
 
 ## Unsaved work: the close protocol
 
@@ -756,8 +767,8 @@ A view that publishes the current subject does so only while it is the window's 
 and clears its topic when it stops being current — the window does neither on the view's behalf.
 Topic ids and payload keys are the contract between publisher and subscriber: keep them in a
 shared header, as the demo does in
-[`DemoServices.h`](examples/workbench_demo/plugins/common/DemoServices.h) and
-[`DemoNotes.h`](examples/workbench_demo/plugins/common/DemoNotes.h), and register them in
+[`DemoServices.h`](examples/workbench_demo/common/DemoServices.h) and
+[`DemoNotes.h`](examples/workbench_demo/common/DemoNotes.h), and register them in
 `QcwTopicRegistry` when tooling or other plugins should discover them — the demo registers every
 one of its topics from the publisher's `doRegisterContributions()`, with description, payload
 keys and statefulness. `QcwTopicService::forApplication()` returns the workbench's service: the

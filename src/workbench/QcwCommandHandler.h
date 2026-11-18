@@ -16,7 +16,7 @@ QT_BEGIN_NAMESPACE
  *
  * @details A handler is registered for a command id at one of four scopes — view,
  * perspective, window or workbench — and QcwWindow resolves the same id by asking the
- * scopes in that order. The first handler found wins, so the same command (Edit/Copy, for
+ * scopes in that order. The first handler found wins, so the same command (Edit/copy, for
  * example) can copy text in one view and copy a file path in another.
  *
  * @par What the handler owns

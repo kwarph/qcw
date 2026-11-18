@@ -22,4 +22,4 @@ QcwPerspective* ProjectPerspectiveCreator::doCreate(QcwWindow* window)
     return new ProjectPerspective { window };
 }
 
-QCW_PLUGIN_IMPLEMENT(ProjectPerspectiveCreator, "ProjectPerspective")
+QCW_PLUGIN_IMPLEMENT(ProjectPerspectiveCreator, "demo.ProjectPerspective")

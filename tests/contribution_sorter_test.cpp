@@ -62,9 +62,9 @@ void expectOrder(const QList<QcwContribution>& actual, const QString& expected, 
 void testNoConstraintsKeepsRegistrationOrder()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste"),
-        make("c3", "Edit/Cut"),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste"),
+        make("c3", "Edit/cut"),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c1,c2,c3"),
@@ -74,8 +74,8 @@ void testNoConstraintsKeepsRegistrationOrder()
 void testBeforeByContributionId()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste", QStringLiteral("c1")),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste", QStringLiteral("c1")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c2,c1"),
@@ -85,8 +85,8 @@ void testBeforeByContributionId()
 void testAfterByContributionId()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste", {}, QStringLiteral("c1")),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste", {}, QStringLiteral("c1")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c1,c2"),
@@ -96,8 +96,8 @@ void testAfterByContributionId()
 void testBeforeByCommandId()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste", QStringLiteral("Edit/Copy")),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste", QStringLiteral("Edit/copy")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c2,c1"),
@@ -107,8 +107,8 @@ void testBeforeByCommandId()
 void testAfterByCommandId()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste", {}, QStringLiteral("Edit/Copy")),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste", {}, QStringLiteral("Edit/copy")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c1,c2"),
@@ -118,8 +118,8 @@ void testAfterByCommandId()
 void testSelfReferenceIgnored()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", QStringLiteral("c1")),
-        make("c2", "Edit/Paste", {}, QStringLiteral("c2")),
+        make("c1", "Edit/copy", QStringLiteral("c1")),
+        make("c2", "Edit/paste", {}, QStringLiteral("c2")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c1,c2"),
@@ -129,8 +129,8 @@ void testSelfReferenceIgnored()
 void testMissingReferenceIgnored()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", QStringLiteral("does-not-exist")),
-        make("c2", "Edit/Paste"),
+        make("c1", "Edit/copy", QStringLiteral("does-not-exist")),
+        make("c2", "Edit/paste"),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c1,c2"),
@@ -140,9 +140,9 @@ void testMissingReferenceIgnored()
 void testCycleFallsBackToRegistrationOrder()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", QStringLiteral("c2")),
-        make("c2", "Edit/Paste", QStringLiteral("c1")),
-        make("c3", "Edit/Cut"),
+        make("c1", "Edit/copy", QStringLiteral("c2")),
+        make("c2", "Edit/paste", QStringLiteral("c1")),
+        make("c3", "Edit/cut"),
     };
 
     // c1 and c2 form a cycle; both are appended in registration order after any constrained
@@ -154,8 +154,8 @@ void testCycleFallsBackToRegistrationOrder()
 void testStartAnchorPinsFirst()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste", QStringLiteral("@start")),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste", QStringLiteral("@start")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c2,c1"),
@@ -165,8 +165,8 @@ void testStartAnchorPinsFirst()
 void testStartAnchorOverridesOtherConstraints()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy"),
-        make("c2", "Edit/Paste", QStringLiteral("@start"), QStringLiteral("c1")),
+        make("c1", "Edit/copy"),
+        make("c2", "Edit/paste", QStringLiteral("@start"), QStringLiteral("c1")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c2,c1"),
@@ -176,9 +176,9 @@ void testStartAnchorOverridesOtherConstraints()
 void testActionSetFiltering()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", {}, {}, QStringLiteral("edit")),
-        make("c2", "Edit/Paste", {}, {}, QStringLiteral("debug")),
-        make("c3", "Edit/Cut"),
+        make("c1", "Edit/copy", {}, {}, QStringLiteral("edit")),
+        make("c2", "Edit/paste", {}, {}, QStringLiteral("debug")),
+        make("c3", "Edit/cut"),
     };
 
     expectOrder(QcwContributionSorter::sort(input, { QStringLiteral("edit") }, QStringLiteral("Edit")),
@@ -188,8 +188,8 @@ void testActionSetFiltering()
 void testActionSetEmptyMeansAllVisible()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", {}, {}, QStringLiteral("edit")),
-        make("c2", "Edit/Paste", {}, {}, QStringLiteral("debug")),
+        make("c1", "Edit/copy", {}, {}, QStringLiteral("edit")),
+        make("c2", "Edit/paste", {}, {}, QStringLiteral("debug")),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c1,c2"),
@@ -199,8 +199,8 @@ void testActionSetEmptyMeansAllVisible()
 void testUnregisteredActionSetHidesContribution()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", {}, {}, QStringLiteral("never")),
-        make("c2", "Edit/Paste"),
+        make("c1", "Edit/copy", {}, {}, QStringLiteral("never")),
+        make("c2", "Edit/paste"),
     };
 
     expectOrder(QcwContributionSorter::sort(input, { QStringLiteral("edit") }, QStringLiteral("Edit")),
@@ -210,8 +210,8 @@ void testUnregisteredActionSetHidesContribution()
 void testInvisibleContributionDropped()
 {
     const QList<QcwContribution> input {
-        make("c1", "Edit/Copy", {}, {}, {}, false),
-        make("c2", "Edit/Paste"),
+        make("c1", "Edit/copy", {}, {}, {}, false),
+        make("c2", "Edit/paste"),
     };
 
     expectOrder(QcwContributionSorter::sort(input, {}, QStringLiteral("Edit")), QStringLiteral("c2"),

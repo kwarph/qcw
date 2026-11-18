@@ -35,7 +35,7 @@ class QWidget;
 namespace demo
 {
 
-inline constexpr QLatin1String ToolBarEdit { "demo/ToolBar/Edit" };
+inline constexpr QLatin1String ToolBarEdit { "ToolBar/Edit" };
 
 /// The id of the View menu the demo window inserts after Edit.
 inline constexpr QLatin1String MenuView { "View" };
@@ -43,10 +43,10 @@ inline constexpr QLatin1String MenuView { "View" };
 // File commands ProjectView contributes and MainWindow registers in the window's File
 // skeleton. Projects are a demo concept, so the ids live here rather than in
 // QcwWindowActionIds.
-inline constexpr QLatin1String ActionNewProject { "File/NewProject" };
-inline constexpr QLatin1String ActionNewFile { "File/NewFile" };
-inline constexpr QLatin1String ActionOpenProject { "File/OpenProject" };
-inline constexpr QLatin1String ActionCloseProject { "File/CloseProject" };
+inline constexpr QLatin1String ActionNewProject { "demo/File/newProject" };
+inline constexpr QLatin1String ActionNewFile { "demo/File/newFile" };
+inline constexpr QLatin1String ActionOpenProject { "demo/File/openProject" };
+inline constexpr QLatin1String ActionCloseProject { "demo/File/closeProject" };
 
 /// QSettings key holding the project folders ProjectView reopens.
 inline constexpr QLatin1String ProjectRootsKey { "demo/projectRoots" };
@@ -65,16 +65,16 @@ inline constexpr QLatin1String TextEditorSettingsGroup { "appearance/textEditor"
 inline constexpr QLatin1String LogViewSettingsGroup { "appearance/logView" };
 
 /// The creator type ProjectView asks for when it opens a file.
-inline constexpr QLatin1String TextEditorType { "TextEditor" };
+inline constexpr QLatin1String TextEditorType { "demo.TextEditor" };
 
 /// The creator type of the log view.
-inline constexpr QLatin1String LogViewType { "LogView" };
+inline constexpr QLatin1String LogViewType { "demo.LogView" };
 
 /// The creator type of the project file manager.
-inline constexpr QLatin1String ProjectViewType { "ProjectView" };
+inline constexpr QLatin1String ProjectViewType { "demo.ProjectView" };
 
 /// The creator type of the symbol outline.
-inline constexpr QLatin1String OutlineViewType { "OutlineView" };
+inline constexpr QLatin1String OutlineViewType { "demo.OutlineView" };
 
 // --- Topic IDs ---
 //

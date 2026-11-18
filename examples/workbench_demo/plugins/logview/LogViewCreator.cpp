@@ -52,4 +52,4 @@ QcwView* LogViewCreator::doCreate(QWidget* parent, const QList<QVariant>& args)
     return view;
 }
 
-QCW_PLUGIN_IMPLEMENT(LogViewCreator, "LogView")
+QCW_PLUGIN_IMPLEMENT(LogViewCreator, "demo.LogView")

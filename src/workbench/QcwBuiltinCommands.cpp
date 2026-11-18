@@ -196,49 +196,49 @@ void QcwBuiltinCommands::registerCommands()
     // --- Contributions ----------------------------------------------------------------
 
     // File
-    registerContribution("file.open.appdir", file, QcwWindowActionIds::ActionOpenAppDir, "file-open");
-    registerContribution("file.open.logdir", file, QcwWindowActionIds::ActionOpenLogDir, "file-open", {},
-                         "file.open.appdir");
-    registerContribution("file.save", file, QcwWindowActionIds::ActionSave, "file-save", {}, "file.open.logdir");
-    registerContribution("file.saveAs", file, QcwWindowActionIds::ActionSaveAs, "file-save", {}, "file.save");
-    registerContribution("file.saveAll", file, QcwWindowActionIds::ActionSaveAll, "file-save", {}, "file.saveAs");
-    registerContribution("file.exit", file, QcwWindowActionIds::ActionExit, "file-exit", {}, "file.saveAll");
+    registerContribution("File/openAppDir", file, QcwWindowActionIds::ActionOpenAppDir, "file-open");
+    registerContribution("File/openLogDir", file, QcwWindowActionIds::ActionOpenLogDir, "file-open", {},
+                         "File/openAppDir");
+    registerContribution("File/save", file, QcwWindowActionIds::ActionSave, "file-save", {}, "File/openLogDir");
+    registerContribution("File/saveAs", file, QcwWindowActionIds::ActionSaveAs, "file-save", {}, "File/save");
+    registerContribution("File/saveAll", file, QcwWindowActionIds::ActionSaveAll, "file-save", {}, "File/saveAs");
+    registerContribution("File/exit", file, QcwWindowActionIds::ActionExit, "file-exit", {}, "File/saveAll");
 
     // Edit
-    registerContribution("edit.undo", edit, QcwWindowActionIds::ActionUndo, "edit-undo");
-    registerContribution("edit.redo", edit, QcwWindowActionIds::ActionRedo, "edit-undo");
-    registerContribution("edit.cut", edit, QcwWindowActionIds::ActionCut, "edit-clipboard");
-    registerContribution("edit.copy", edit, QcwWindowActionIds::ActionCopy, "edit-clipboard");
-    registerContribution("edit.paste", edit, QcwWindowActionIds::ActionPaste, "edit-clipboard");
-    registerContribution("edit.delete", edit, QcwWindowActionIds::ActionDelete, "edit-clipboard");
-    registerContribution("edit.rename", edit, QcwWindowActionIds::ActionRename, "edit-clipboard");
-    registerContribution("edit.selectAll", edit, QcwWindowActionIds::ActionSelectAll, "edit-select");
-    registerContribution("edit.preferences", edit, QcwWindowActionIds::ActionPreferences, "edit-preferences");
+    registerContribution("Edit/undo", edit, QcwWindowActionIds::ActionUndo, "edit-undo");
+    registerContribution("Edit/redo", edit, QcwWindowActionIds::ActionRedo, "edit-undo");
+    registerContribution("Edit/cut", edit, QcwWindowActionIds::ActionCut, "edit-clipboard");
+    registerContribution("Edit/copy", edit, QcwWindowActionIds::ActionCopy, "edit-clipboard");
+    registerContribution("Edit/paste", edit, QcwWindowActionIds::ActionPaste, "edit-clipboard");
+    registerContribution("Edit/delete", edit, QcwWindowActionIds::ActionDelete, "edit-clipboard");
+    registerContribution("Edit/rename", edit, QcwWindowActionIds::ActionRename, "edit-clipboard");
+    registerContribution("Edit/selectAll", edit, QcwWindowActionIds::ActionSelectAll, "edit-select");
+    registerContribution("Edit/preferences", edit, QcwWindowActionIds::ActionPreferences, "edit-preferences");
 
     // Window
-    registerContribution("window.newWindow", window, QcwWindowActionIds::ActionNewWindow, "window-window");
-    registerContribution("window.removeWindow", window, QcwWindowActionIds::ActionRemoveWindow, "window-window");
-    registerContribution("window.commandPalette", window, QcwWindowActionIds::ActionCommandPalette, "window-window");
-    registerContribution("window.appearance.showToolBar", appearance, QcwWindowActionIds::ActionShowToolBar,
+    registerContribution("Window/newWindow", window, QcwWindowActionIds::ActionNewWindow, "window-window");
+    registerContribution("Window/removeWindow", window, QcwWindowActionIds::ActionRemoveWindow, "window-window");
+    registerContribution("Window/commandPalette", window, QcwWindowActionIds::ActionCommandPalette, "window-window");
+    registerContribution("Window/Appearance/showToolBar", appearance, QcwWindowActionIds::ActionShowToolBar,
                          "appearance");
-    registerContribution("window.appearance.showStatusBar", appearance, QcwWindowActionIds::ActionShowStatusBar,
-                         "appearance", {}, "window.appearance.showToolBar");
-    registerContribution("window.appearance.themes", appearance, QcwWindowActionIds::ActionThemes, "appearance", {},
-                         "window.appearance.showStatusBar");
-    registerContribution("window.perspective.open", perspective, QcwWindowActionIds::ActionOpenPerspective,
+    registerContribution("Window/Appearance/showStatusBar", appearance, QcwWindowActionIds::ActionShowStatusBar,
+                         "appearance", {}, "Window/Appearance/showToolBar");
+    registerContribution("Window/Appearance/themes", appearance, QcwWindowActionIds::ActionThemes, "appearance", {},
+                         "Window/Appearance/showStatusBar");
+    registerContribution("Window/Perspective/openPerspective", perspective, QcwWindowActionIds::ActionOpenPerspective,
                          "perspective-open");
-    registerContribution("window.perspective.saveAs", perspective, QcwWindowActionIds::ActionSavePerspectiveAs,
+    registerContribution("Window/Perspective/savePerspectiveAs", perspective,
+                         QcwWindowActionIds::ActionSavePerspectiveAs, "perspective-edit");
+    registerContribution("Window/Perspective/resetPerspective", perspective, QcwWindowActionIds::ActionResetPerspective,
                          "perspective-edit");
-    registerContribution("window.perspective.reset", perspective, QcwWindowActionIds::ActionResetPerspective,
+    registerContribution("Window/Perspective/closePerspective", perspective, QcwWindowActionIds::ActionClosePerspective,
                          "perspective-edit");
-    registerContribution("window.perspective.close", perspective, QcwWindowActionIds::ActionClosePerspective,
-                         "perspective-edit");
-    registerContribution("window.perspective.closeAll", perspective, QcwWindowActionIds::ActionCloseAllPerspectives,
-                         "perspective-edit");
+    registerContribution("Window/Perspective/closeAllPerspectives", perspective,
+                         QcwWindowActionIds::ActionCloseAllPerspectives, "perspective-edit");
 
     // Help
-    registerContribution("help.about", help, QcwWindowActionIds::ActionAbout, "help-about");
-    registerContribution("help.aboutPlugins", help, QcwWindowActionIds::ActionAboutPlugins, "help-about");
+    registerContribution("Help/about", help, QcwWindowActionIds::ActionAbout, "help-about");
+    registerContribution("Help/aboutPlugins", help, QcwWindowActionIds::ActionAboutPlugins, "help-about");
 }
 
 void QcwBuiltinCommands::unregisterCommands()

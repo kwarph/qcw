@@ -719,65 +719,25 @@ UI-less commands also get a QAction added with `addAction()` on the window so th
 
 ## 10. Naming Conventions
 
-### 10.1 Character Set and Separators
+The authoritative, cross-project convention is
+[`qcw-id-naming-conventions.md`](qcw-id-naming-conventions.md). It supersedes the earlier rules in
+this section (words separated by dots inside path ids, lowercase action set ids).
 
-All ids use only:
+In short:
 
-```text
-A-Z a-z 0-9 . / _ -
-```
+- Interface IIDs use the full reverse-DNS form: `org.<domain>.<Interface>`
+  (`org.qcw.QcwViewCreator`).
+- Concrete creator/plugin types use the short owner form with exactly one dot:
+  `<owner>.<TypeName>` (`demo.ProjectView`, `acme.SomeView`).
+- Path ids use `/` only: menus, tool bars, commands, contributions and action sets.
+- Places, categories, types and sets are UpperCamelCase; actions and payload keys are
+  lowerCamelCase.
+- Built-in ids carry no owner; application and plugin ids carry their short-name owner.
 
-- `/` denotes hierarchy;
-- `.` separates words within a segment;
-- `-` is used for hyphenated words;
-- Spaces, colons, backslashes and control characters are not allowed.
-
-### 10.2 Namespaces
-
-| Source | Namespace | Example |
-|---|---|---|
-| QCW built-in | No prefix | `File/Save`, `Edit/Copy`, `Window/CommandPalette` |
-| Application | Application short name + `/` | `myapp/Project/Open` |
-| Plugin | Plugin name + `/` | `myplugin/Project/Open` |
-
-**Rule: built-in ids have no namespace prefix; third-party ids must have one.**
-
-### 10.3 Format of Each Id Type
-
-| Type | Format | Example |
-|---|---|---|
-| Command id | `<namespace>/<Menu>/<CommandName>` or `<namespace>/<Domain>/<CommandName>` | `File/Save`, `myplugin/Project/Open` |
-| Action set id | `<namespace>/<SetName>`, lowercase + dots or slashes | `debug`, `myplugin/project` |
-| Contribution id | `<namespace>/<target-path>/<contributionName>`, lowercase + slashes | `file/save`, `myplugin/project/open` |
-| Menu target | `<MenuPath>`, PascalCase | `File`, `Window/Perspective` |
-| Toolbar target | `ToolBar/<ToolBarName>` | `ToolBar/Main`, `ToolBar/Debug` |
-
-### 10.4 Constant Organization
-
-- **Built-in ids** stay in `QcwWindowActionIds`;
-- **Built-in action sets** go in `QcwActionSetIds` (not created unless there are built-in action sets);
-- **Application ids** go in the application's own header (e.g. `AppCommands.h`);
-- **Plugin ids** go in the plugin's internal header and are **not published**;
-- `*Start` / `*End` are removed.
-
-### 10.5 Runtime Validation
-
-- Each registry validates the id character set at the entry point; invalid ids are rejected with a `qWarning`;
-- Re-registration of the same id replaces the entry, and warns when the content differs; re-declaring
-  an identical contribution is how a language change re-registers the built-ins, so it stays silent;
-- The first version does not track origins, only format and duplicate validation.
-
-### 10.6 Documentation
-
-Add a section **Command and contribution id naming** to README / developer guide, covering:
-
-- Character set and separators;
-- Namespace rules;
-- Format of each id type;
-- Constant organization recommendations;
-- Documentation covers only the ids of **public owners** (workbench built-in, application's own); plugin-internal ids are not part of QCW documentation.
-
----
+Constant organization and runtime validation are unchanged: built-in ids live in
+`QcwWindowActionIds` (and `QcwActionSetIds` when built-in action sets appear); an application keeps
+its ids in its own header; plugin ids stay inside the plugin; each registry validates the character
+set with `QcwIdUtils`, while the structural rules are enforced by tests.
 
 ## 11. Runtime Contracts and Cross-Plugin Extension
 
@@ -832,7 +792,7 @@ for (auto* plugin : pluginManager->getPluginsByCategory("Project"))
     if (auto* provider = qobject_cast<IProjectCommandProvider*>(plugin))
     {
         contributionRegistry->registerContribution({
-            "app/project/open", {}, "File", provider->openCommandId(),
+            "myapp/File/openProject", {}, "File", provider->openCommandId(),
             {}, {}, "project", true });
     }
 }
@@ -871,14 +831,14 @@ Perspective creators may only write action set ids they know; cross-plugin actio
 
 ```text
 QCW command catalog (registered):
-  Edit/Copy
-  File/Save
-  myplugin/Project/Open
+  Edit/copy
+  File/save
+  myplugin/Project/open
 QCW action set catalog (registered):
-  myplugin/project
+  myplugin/Project
 QCW contribution catalog (registered):
-  myplugin/project/open
-  file.save
+  myplugin/Project/open
+  File/save
 ```
 
 Origins are inferred from `QObject::parent()` or the registration `sender`, used only for diagnostics, not discovery.
@@ -904,14 +864,14 @@ Origins are inferred from `QObject::parent()` or the registration `sender`, used
 ### Migration for `QcwGlobalActions` Retirement
 
 1. **Unify id constants in `QcwWindowActionIds`**
-   - `ActionNewWindow` → `Window/NewWindow`
-   - `ActionRemoveWindow` → `Window/RemoveWindow`
-   - `ActionExit` → `File/Exit`
-   - `ActionPreferences` → `Edit/Preferences`
-   - `ActionCommandPalette` → `Window/CommandPalette`
-   - `ActionAbout` → `Help/About`
-   - `ActionAboutPlugins` → `Help/AboutPlugins`
-   - `ActionThemes` → `Window/Appearance/Themes`
+   - `ActionNewWindow` → `Window/newWindow`
+   - `ActionRemoveWindow` → `Window/removeWindow`
+   - `ActionExit` → `File/exit`
+   - `ActionPreferences` → `Edit/preferences`
+   - `ActionCommandPalette` → `Window/commandPalette`
+   - `ActionAbout` → `Help/about`
+   - `ActionAboutPlugins` → `Help/aboutPlugins`
+   - `ActionThemes` → `Window/Appearance/themes`
 
 2. **Built-in global commands are registered as global handlers by `QcwWorkbench`**, along with their `QcwCommandInfo` in `QcwCommandRegistry`.
 
@@ -971,19 +931,19 @@ private:
 
 // Menu contribution registered once
 contributionRegistry->registerContribution({
-    "edit.copy", {}, "Edit", QcwWindowActionIds::ActionCopy,
+    "Edit/copy", {}, "Edit", QcwWindowActionIds::ActionCopy,
     {}, {}, "edit-clipboard", true });
 ```
 
 ### 14.2 Perspective Switches Action Set
 
 ```cpp
-actionSetRegistry->registerActionSet({ "debug", tr("Debug") });
+actionSetRegistry->registerActionSet({ "Debug", tr("Debug") });
 
-perspective->setVisibleActionSetIds({ "debug", "project" });
+perspective->setVisibleActionSetIds({ "Debug", "Project" });
 
 contributionRegistry->registerContribution({
-    "debug.stepOver", "debug", "ToolBar/Debug", "debug.stepOver",
+    "myapp/ToolBar/Debug/stepOver", "Debug", "ToolBar/Debug", "myapp/Debug/stepOver",
     {}, {}, "debug-controls", true });
 ```
 
@@ -1045,9 +1005,9 @@ commandRegistry->registerCommand({
 });
 
 contributionRegistry->registerContribution({
-    "window.appearance.showStatusBar", {}, "Window/Appearance",
+    "Window/Appearance/showStatusBar", {}, "Window/Appearance",
     QcwWindowActionIds::ActionShowStatusBar,
-    {}, "window.appearance.showToolBar", "appearance", true });
+    {}, "Window/Appearance/showToolBar", "appearance", true });
 ```
 
 ---
