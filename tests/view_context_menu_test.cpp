@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     check(view.namedActions().isEmpty(), QStringLiteral("a new view starts with no named actions"));
 
     QMenu* menu = view.contextMenu();
-    check(menu != nullptr, QStringLiteral("contextMenu() creates the menu"));
+    check(menu != nullptr, QStringLiteral("a view is constructed with its context menu"));
     check(menu == view.contextMenu(), QStringLiteral("contextMenu() returns the same menu on every call"));
     check(menu->parent() == &view, QStringLiteral("the view owns the context menu"));
     check(menu->actions().isEmpty(), QStringLiteral("QcwView adds nothing to the menu by default"));
@@ -62,6 +62,36 @@ int main(int argc, char* argv[])
 
     view.namedActions().remove(QLatin1String("Test/action"));
     check(view.namedActions().isEmpty(), QStringLiteral("a named action can be removed"));
+
+    // addContextMenuSection() appends a separated section; an empty title adds the actions
+    // directly, a non-empty one puts them in a submenu.
+    QAction sectionAction { &view };
+    sectionAction.setText(QStringLiteral("Section Action"));
+    view.addContextMenuSection(QStringLiteral("Section"), { &sectionAction });
+    check(menu->actions().size() == 2 && menu->actions().at(0)->isSeparator(),
+          QStringLiteral("addContextMenuSection() separates the new section"));
+    QMenu* section = menu->actions().at(1)->menu();
+    check(section != nullptr && section->actions() == QList<QAction*> { &sectionAction },
+          QStringLiteral("the section is a submenu holding the actions"));
+
+    // insertContextMenuSection() places a section around an action registered in namedActions().
+    QAction anchorAction { &view };
+    anchorAction.setText(QStringLiteral("Anchor Action"));
+    view.namedActions().insert(QLatin1String("Test/anchor"), &anchorAction);
+    view.addContextMenuSection(QString(), { &anchorAction });
+
+    QAction beforeAction { &view };
+    beforeAction.setText(QStringLiteral("Before Action"));
+    view.insertContextMenuSection(true, QLatin1String("Test/anchor"), QString(), { &beforeAction });
+    check(menu->actions().indexOf(&beforeAction) != -1 &&
+              menu->actions().indexOf(&beforeAction) < menu->actions().indexOf(&anchorAction),
+          QStringLiteral("insertContextMenuSection(before) places the actions before the anchor"));
+
+    QAction afterAction { &view };
+    afterAction.setText(QStringLiteral("After Action"));
+    view.insertContextMenuSection(false, QLatin1String("Test/anchor"), QString(), { &afterAction });
+    check(menu->actions().indexOf(&afterAction) > menu->actions().indexOf(&anchorAction),
+          QStringLiteral("insertContextMenuSection(after) places the actions after the anchor"));
 
     TestView other;
     check(other.contextMenu() != menu, QStringLiteral("each view has its own context menu"));

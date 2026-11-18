@@ -45,8 +45,8 @@ public:
     // for another one afterwards, when the view's place in the world is settled.
     bool inTransition { false };
     bool againRequested { false };
-    // Created on first contextMenu() call and parented to the view, so ~QWidget releases it
-    // after this private is gone. The named actions are borrowed, never owned.
+    // Created in the constructor and parented to the view, so ~QWidget releases it after
+    // this private is gone. The named actions are borrowed, never owned.
     QMenu* contextMenu { nullptr };
     QMap<QLatin1String, QAction*> namedActions;
 };
@@ -185,6 +185,9 @@ QcwView::QcwView(QWidget* parent) :
     QWidget { parent },
     impl { new QcwViewPrivate { this } }
 {
+    // Every view has a context menu; a derived view fills it. ~QWidget releases it after this
+    // private is gone, so the private only borrows the pointer.
+    impl->contextMenu = new QMenu { this };
 }
 
 QcwView::~QcwView()
@@ -203,17 +206,81 @@ QString QcwView::type() const
 
 QMenu* QcwView::contextMenu() const
 {
-    if (!impl->contextMenu)
-    {
-        impl->contextMenu = new QMenu { impl->owner };
-    }
-
     return impl->contextMenu;
 }
 
 QMap<QLatin1String, QAction*>& QcwView::namedActions()
 {
     return impl->namedActions;
+}
+
+void QcwView::addContextMenuSection(const QString& title, const QList<QAction*>& actions)
+{
+    if (actions.isEmpty())
+    {
+        return;
+    }
+
+    QMenu* menu = contextMenu();
+    menu->addSeparator();
+    if (title.isEmpty())
+    {
+        menu->addActions(actions);
+        return;
+    }
+
+    menu->addMenu(title)->addActions(actions);
+}
+
+void QcwView::insertContextMenuSection(bool before,
+                                       const QLatin1String& refActionName,
+                                       const QString& title,
+                                       const QList<QAction*>& actions)
+{
+    if (actions.isEmpty())
+    {
+        return;
+    }
+
+    QMenu* menu = contextMenu();
+    auto refAction = namedActions().value(refActionName);
+    if (!refAction)
+    {
+        return addContextMenuSection(title, actions);
+    }
+
+    const auto actionsInMenu = menu->actions();
+    const int refIndex = actionsInMenu.indexOf(refAction);
+    if (refIndex < 0)
+    {
+        return addContextMenuSection(title, actions);
+    }
+
+    if (!before)
+    {
+        // Inserting before the next entry puts the section after the anchor. The anchor can be
+        // the last entry, and then there is no next entry to insert before.
+        if (refIndex == actionsInMenu.size() - 1)
+        {
+            return addContextMenuSection(title, actions);
+        }
+
+        refAction = actionsInMenu.value(refIndex + 1);
+    }
+
+    menu->insertSeparator(refAction);
+    if (title.isEmpty())
+    {
+        menu->insertActions(refAction, actions);
+    }
+    else
+    {
+        auto subMenu = new QMenu { title, menu };
+        subMenu->addActions(actions);
+
+        menu->insertMenu(refAction, subMenu);
+    }
+    menu->insertSeparator(refAction);
 }
 
 void QcwView::setType(const QString& type)

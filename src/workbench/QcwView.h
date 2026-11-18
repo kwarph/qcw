@@ -246,6 +246,36 @@ public:
      */
     QVariantMap currentWindowTopic(const QString& topicId) const;
 
+    /**
+     * @brief Appends a context-menu section with @p title containing @p actions.
+     * @param title The submenu title, or an empty string to append the actions directly.
+     * @param actions The actions to place; an empty list does nothing.
+     *
+     * @details Profiles and plugins own their commands, so a view's context menu stays generic
+     * and another component attaches its own section without duplicating the actions. A separator
+     * is placed before the section. The caller keeps ownership of the actions and they keep their
+     * enabled state.
+     * @see contextMenu(), insertContextMenuSection()
+     */
+    void addContextMenuSection(const QString& title, const QList<QAction*>& actions);
+
+    /**
+     * @brief Inserts a context-menu section relative to an action named in namedActions().
+     * @param before True places the section before @p refActionName, false places it after.
+     * @param refActionName The view-local name of the anchor action.
+     * @param title The submenu title, or an empty string to insert the actions directly.
+     * @param actions The actions to place; an empty list does nothing.
+     *
+     * @details When @p refActionName is not registered the section is appended at the end, as
+     * addContextMenuSection() would. A separator is placed on both sides of the inserted section.
+     * The caller keeps ownership of the actions and they keep their enabled state.
+     * @see addContextMenuSection(), namedActions()
+     */
+    void insertContextMenuSection(bool before,
+                                  const QLatin1String& refActionName,
+                                  const QString& title,
+                                  const QList<QAction*>& actions);
+
 protected:
     /**
      * @brief Routes QEvent::LanguageChange to retranslateUi() and QEvent::ParentChange to the
@@ -272,16 +302,16 @@ protected:
     void showEvent(QShowEvent* event) override;
 
     /**
-     * @brief The view's context menu, created on first use.
+     * @brief The view's context menu, created with the view.
      * @return The menu, never @c nullptr.
      *
      * @details The menu is a child of this view and is not shown by QcwView: a view that wants
      * a context menu selects a context-menu policy and calls exec() at the position it chooses.
      * Subclasses add their actions here; nothing is added by default.
      *
-     * @note Create or mutate it only on the GUI thread. The view owns the menu, so a pointer
-     *       stays valid for as long as the view lives.
-     * @see namedActions()
+     * @note Mutate it only on the GUI thread. The view owns the menu, so a pointer stays valid
+     *       for as long as the view lives.
+     * @see namedActions(), addContextMenuSection(), insertContextMenuSection()
      */
     QMenu* contextMenu() const;
 
