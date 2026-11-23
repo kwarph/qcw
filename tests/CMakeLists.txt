@@ -8,6 +8,10 @@ qt_add_executable(view_status_bar_widget_test
     view_status_bar_widget_test.cpp
 )
 
+qt_add_executable(view_reveal_test
+    view_reveal_test.cpp
+)
+
 qt_add_executable(plugin_loader_test
     plugin_loader_test.cpp
 )
@@ -158,6 +162,7 @@ target_compile_definitions(translations_test PRIVATE
 foreach(target IN ITEMS
     view_top_right_tool_bar_test
     view_status_bar_widget_test
+    view_reveal_test
     plugin_loader_test
     folder_minimize_restore_test
     theme_icons_test

@@ -499,6 +499,23 @@ the creator itself implement `AIModelConnector`, `Q_INTERFACES(AIModelConnectorC
 and register it from `doRegisterContributions()`. That is the route `TextEditorCreator` takes with
 `demo::IEditorService`, and it lets other plugins consume the connector without a window.
 
+### Bringing an existing view forward
+
+A view can be hidden by another tab, a minimized (fast view) folder, a maximized sibling or a
+different perspective. Do not repeat those four cases at every "show the related view" call site;
+use the window API:
+
+```cpp
+QcwView* view = window->viewOfType("MyView");
+window->revealView(view);            // select the tab, restore the folder, switch perspective
+window->revealViewOfType("MyView");  // find + reveal, returns the view on success
+```
+
+`revealView()` does not change focus, create a view or raise the window, so a read-only output
+view can be brought forward without stealing the caret. See
+[`docs/qcw-view-reveal-design.md`](docs/qcw-view-reveal-design.md) and
+[`tests/view_reveal_test.cpp`](tests/view_reveal_test.cpp).
+
 ## Menus, commands and tool bars
 
 Four things go into a menu entry, and the library keeps them apart:

@@ -73,6 +73,24 @@ namespace
 {
 constexpr int kWindowStateVersion = 1;
 
+/// Every folder of @p perspective: docked folders (a minimized one is still tracked by the
+/// container) and floating folders.
+QSet<QcwTabFolder*> foldersOf(QcwPerspective* perspective)
+{
+    QSet<QcwTabFolder*> folders;
+    if (!perspective)
+    {
+        return folders;
+    }
+
+    folders = perspective->floatingFolders();
+    if (auto* container = perspective->folderContainer())
+    {
+        folders.unite(container->folders());
+    }
+    return folders;
+}
+
 /// The ordinal QcwWindow::makeNewViewName() appended to @p base to make @p text.
 int autoTitleOrdinal(const QString& text, const QString& base)
 {
@@ -840,6 +858,117 @@ QcwTabFolder* QcwWindow::sharedFolder() const
 QSet<QcwView*> QcwWindow::allViews() const
 {
     return impl->collectViews();
+}
+
+QcwView* QcwWindow::viewOfType(const QString& viewType) const
+{
+    if (!impl || viewType.isEmpty())
+    {
+        return nullptr;
+    }
+
+    const auto firstIn = [&viewType](QcwPerspective* perspective) -> QcwView*
+    {
+        if (!perspective)
+        {
+            return nullptr;
+        }
+
+        QSet<QcwView*> views;
+        perspective->collectViews(views);
+        for (QcwView* view : views)
+        {
+            if (view && view->type() == viewType)
+            {
+                return view;
+            }
+        }
+        return nullptr;
+    };
+
+    // The panel in the perspective on screen wins over one in a hidden perspective; otherwise a
+    // background layout could make a "show the results" gesture switch the user away.
+    QcwPerspective* current = impl->currentPerspective;
+    if (QcwView* view = firstIn(current))
+    {
+        return view;
+    }
+
+    for (QcwPerspective* perspective : allPerspectives())
+    {
+        if (perspective == current)
+        {
+            continue;
+        }
+        if (QcwView* view = firstIn(perspective))
+        {
+            return view;
+        }
+    }
+
+    return nullptr;
+}
+
+bool QcwWindow::revealView(QcwView* view)
+{
+    if (!impl || !view || view->owningWindow() != this)
+    {
+        return false;
+    }
+
+    QcwPerspective* current = impl->currentPerspective;
+    QList<QcwPerspective*> order;
+    if (current)
+    {
+        order.append(current);
+    }
+    for (QcwPerspective* perspective : allPerspectives())
+    {
+        if (perspective && perspective != current)
+        {
+            order.append(perspective);
+        }
+    }
+
+    for (QcwPerspective* perspective : order)
+    {
+        for (QcwTabFolder* folder : foldersOf(perspective))
+        {
+            const int index = folder->indexOf(view);
+            if (index < 0)
+            {
+                continue;
+            }
+
+            if (perspective != current)
+            {
+                setCurrentPerspective(perspective->id());
+            }
+
+            // A minimized folder (or one hidden behind a maximized sibling) is parked outside
+            // the layout; the fast view restores it with the same signal.
+            if (auto* container = perspective->folderContainer(); container && container->isMinimizedFolder(folder))
+            {
+                emit folder->restoreRequested();
+            }
+
+            perspective->activateFolder(folder);
+            folder->setCurrentIndex(index);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+QcwView* QcwWindow::revealViewOfType(const QString& viewType)
+{
+    QcwView* view = viewOfType(viewType);
+    if (!view || !revealView(view))
+    {
+        return nullptr;
+    }
+    return view;
 }
 
 QString QcwWindow::makeNewViewName(const QString& defaultViewName)

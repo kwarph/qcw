@@ -240,6 +240,46 @@ public:
     QSet<QcwView*> allViews() const;
 
     /**
+     * @brief The first live view of @p viewType in this window.
+     * @param viewType The QcwViewCreator type, compared with QcwView::type().
+     * @return The view, or nullptr when no perspective holds one with that type.
+     * @details The current perspective is searched first, then every other perspective, so a
+     *          view in a hidden perspective does not shadow the one on screen. A view parked in
+     *          a fast view (its folder was minimized) is a view of its perspective and is
+     *          found too. The result is a snapshot; a view removed by an event in between is
+     *          still returned.
+     * @see QcwView::type(), allViews(), revealViewOfType()
+     */
+    QcwView* viewOfType(const QString& viewType) const;
+
+    /**
+     * @brief Makes @p view visible without changing focus.
+     * @param view A view of this window.
+     * @return @c true when @p view is attached to one of this window's folders.
+     * @details The window brings the view forward through the one sequence every "show the
+     *          related view" gesture needs:
+     *          - find the perspective and folder that hold @p view, current perspective first;
+     *          - switch to that perspective only when it is not current;
+     *          - restore the folder when it is minimized or hidden behind a maximized sibling,
+     *            by emitting QcwTabFolder::restoreRequested() (the fast view's Restore path);
+     *          - activate the folder and select the view's tab.
+     *
+     *          The view is not focused, created, or moved to another window, and the window is
+     *          not raised. A read-only output view (a build console) can therefore be shown
+     *          without pulling the caret out of an editor; a view that wants focus (a rename
+     *          field) does that itself after revealView() returns.
+     * @see viewOfType(), QcwTabFolder::restoreRequested(), QcwPerspective::activateFolder()
+     */
+    bool revealView(QcwView* view);
+
+    /**
+     * @brief viewOfType() followed by revealView().
+     * @return The view on success, nullptr when no view has @p viewType or it is not attached.
+     * @see viewOfType(), revealView(QcwView*)
+     */
+    QcwView* revealViewOfType(const QString& viewType);
+
+    /**
      * @brief A view name that no tab pane of this process uses yet.
      * @param defaultViewName The name to start from, normally a
      *                        QcwViewCreator::defaultWindowTitle().
