@@ -1,6 +1,10 @@
 QToolBar {
     background: transparent;
     border: none;
+    /* One icon size for every tool bar, including the ones a host application or a
+       plugin builds itself; without this, QToolBar falls back to the widget style's
+       PM_ToolBarIconSize, which differs between styles and themes. */
+    icon-size: 16px;
 }
 
 QToolButton {
