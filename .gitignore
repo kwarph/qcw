@@ -16,4 +16,5 @@
 .cproject
 .clangd
 .qoder/
+.gusu/
 /AGENTS.local.md
