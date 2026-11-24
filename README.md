@@ -1106,3 +1106,7 @@ comment that explains its contracts, ownership rules and the reasons behind them
 
 BSD-3-Clause. See [LICENSE](LICENSE). Sources carry SPDX headers; QCW's themes and catalogs
 install under `share/qcw`, and the qcw-docking catalogs install alongside them.
+
+The built-in workbench icons under `src/resources/icons` are Microsoft's Codicons, licensed under
+CC BY 4.0; [that directory's README](src/resources/icons/README.md) records the attribution, the
+`qcw::Icon` mapping and the refresh steps.

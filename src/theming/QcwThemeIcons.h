@@ -14,17 +14,22 @@ namespace qcw
 /**
  * @enum Icon
  * @brief Built-in icons that follow the application palette.
+ *
+ * @details The artwork is taken from Microsoft's Codicons (CC BY 4.0), so the workbench chrome
+ * shares one 16x16 grid with the icons an application ships. The files under
+ * `src/resources/icons` keep their `qcw::Icon` names; the codicon each one came from, the
+ * license and the refresh instructions are recorded in that directory's README.
  */
 enum class Icon
 {
-    Perspective,    ///< Multi-pane perspective layout.
-    View,           ///< Framed view with a title bar.
-    NewPerspective, ///< Perspective layout with a plus.
-    NewView,        ///< View with a plus.
-    FolderMaximize, ///< Square used by the maximize button.
-    FolderRestore,  ///< Overlapping squares used by the restore button.
-    FolderMinimize, ///< Horizontal line used by the minimize button.
-    TabList         ///< Bulleted list used by the tab-list button.
+    Perspective,    ///< Multi-pane perspective layout (codicon `layout`).
+    View,           ///< Framed view with a title bar (codicon `window`).
+    NewPerspective, ///< Perspective layout with a plus (codicon `new-collection`).
+    NewView,        ///< View with a plus (codicon `new-session`).
+    FolderMaximize, ///< Square used by the maximize button (codicon `chrome-maximize`).
+    FolderRestore,  ///< Overlapping squares used by the restore button (codicon `chrome-restore`).
+    FolderMinimize, ///< Horizontal line used by the minimize button (codicon `chrome-minimize`).
+    TabList         ///< Bulleted list used by the tab-list button (codicon `list-unordered`).
 };
 
 /**
