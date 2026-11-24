@@ -197,20 +197,30 @@ public:
      */
     void clearData();
 
-protected:
     /**
      * @brief Finds the item an index stands for.
      * @param index Index to look up.
      * @return The item, rootItem() for an invalid index, or null for a valid index that names no
      *         row.
      * @details The invalid index is the top-level parent, and the invisible root is what answers it
-     *          — which is why a top-level row has no index of its own. A stale or foreign index is
-     *          answered with null rather than with the root, so a caller's check fails instead of
-     *          quietly treating the whole tree as the row it was given.
+     *          — which is why a top-level row has no index of its own. A valid index from another
+     *          model is answered with null; an index from this model that no longer names a live
+     *          row is the caller's stale-index bug, so hold indexes only while the row is alive.
      * @see indexFromItem()
      */
     QcwTreeItem* itemForIndex(const QModelIndex& index) const;
 
+    /**
+     * @brief Builds the index of an item.
+     * @param item Item to look up; its row in its parent is the row of the result, in column 0.
+     * @return The index, or an invalid index for the root item, for a null pointer and for a row
+     *         that is attached to no parent — a detached row is not a row of any tree, so it has no
+     *         index to hand out.
+     * @see itemForIndex(), rowItem()
+     */
+    QModelIndex indexFromItem(QcwTreeItem* item) const;
+
+protected:
     /**
      * @brief Finds the row an index stands for, refusing one that is no longer in the tree.
      * @param index Index to look up.
@@ -224,16 +234,6 @@ protected:
      * @see itemForIndex(), indexFromItem()
      */
     QcwTreeItem* rowItem(const QModelIndex& index) const;
-
-    /**
-     * @brief Builds the index of an item.
-     * @param item Item to look up; its row in its parent is the row of the result, in column 0.
-     * @return The index, or an invalid index for the root item, for a null pointer and for a row
-     *         that is attached to no parent — a detached row is not a row of any tree, so it has no
-     *         index to hand out.
-     * @see itemForIndex(), rowItem()
-     */
-    QModelIndex indexFromItem(QcwTreeItem* item) const;
 
     /// The invisible root item, which owns the top-level rows. @see itemForIndex()
     QcwTreeItem* rootItem() const;

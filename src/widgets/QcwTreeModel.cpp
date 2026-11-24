@@ -335,7 +335,9 @@ QcwTreeItem* QcwTreeModel::itemForIndex(const QModelIndex& index) const
 {
     if (index.isValid())
     {
-        return static_cast<QcwTreeItem*>(index.internalPointer());
+        // A valid index from another model is not a row of this tree. Checking the model keeps
+        // a public lookup from returning a pointer this model does not own.
+        return index.model() == this ? static_cast<QcwTreeItem*>(index.internalPointer()) : nullptr;
     }
 
     return mRootItem;

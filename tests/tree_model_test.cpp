@@ -73,8 +73,6 @@ public:
 
     using QcwTreeModel::createIndex;
     using QcwTreeModel::cutItem;
-    using QcwTreeModel::indexFromItem;
-    using QcwTreeModel::itemForIndex;
     using QcwTreeModel::rootItem;
 
     /// Adds a row below @p parent and names it @p text.
