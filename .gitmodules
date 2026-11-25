@@ -1,3 +1,4 @@
 [submodule "third_party/qcw-docking"]
 	path = third_party/qcw-docking
 	url = git@github.com:kwarph/qcw-docking.git
+	branch = main
