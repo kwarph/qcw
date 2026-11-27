@@ -457,6 +457,9 @@ int main(int argc, char** argv)
                             restoredImage.pixelColor(bottomEdge) == borderColor &&
                             nearColor(restoredImage.pixelColor(arcBottomRight), borderColor);
 
+    // A renderer is only replaced when the theme's window style names a different renderer
+    // type; the same built-in type reloads its data in place.
+    const quintptr lightRendererId = reinterpret_cast<quintptr>(folder->renderer());
     // The theme change is applied in a queued pass, after the renderers reload their data.
     themeManager->changeTheme("TestDark");
     settle();
@@ -466,10 +469,12 @@ int main(int argc, char** argv)
                         centralMargins(window) == QMargins(6, 6, 6, 6) && darkInsets.left() == 0 &&
                         darkInsets.right() == 0 && darkInsets.bottom() == 0 && darkInsets.top() > 0 &&
                         visibleCornerMasks(*folder) == 0 && visibleBorderStrips(*folder) == 0 &&
+                        reinterpret_cast<quintptr>(folder->renderer()) != lightRendererId &&
                         darkImage.pixelColor(bottomRight) == pageColor;
 
     themeManager->changeTheme("TestLight");
     settle();
+    const quintptr restoredRendererId = reinterpret_cast<quintptr>(folder->renderer());
     const QMargins lightInsets = pageInsets(*folder);
     const QImage lightImage = folderImage(*folder);
     const bool lightOk =
@@ -506,7 +511,8 @@ int main(int argc, char** argv)
         styledRenderer->tabBarPadding() == QMargins(6, 6, 6, 6) &&
         styledRenderer->pageMargins() == QMargins(6, 0, 6, 6) && !styledRenderer->frameMask().surroundColor.isValid() &&
         styledRenderer->frameMask().borderWidth == 0 && visibleCornerMasks(*folder) == 0 &&
-        visibleBorderStrips(*folder) == 0 && folder->styleSheet().contains("QcwTabFolder") &&
+        visibleBorderStrips(*folder) == 0 && reinterpret_cast<quintptr>(folder->renderer()) == restoredRendererId &&
+        folder->styleSheet().contains("QcwTabFolder") &&
         window.styleSheet() == plainCss && centralMargins(window) == QMargins(6, 6, 6, 6) && plainInsets.left() == 6 &&
         plainInsets.right() == 6 && plainInsets.bottom() == 6 && plainInsets.top() > 0 && qApp->styleSheet().isEmpty();
 

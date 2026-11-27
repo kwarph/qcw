@@ -44,7 +44,10 @@ class QcwWindowStylerPrivate;
  * initialize() collects the styles of the current theme, applies the configured one and then
  * re-applies it whenever QcwThemeManager::themeChanged() arrives. The application is deferred
  * to the next event-loop pass on that signal so the theme-aware renderers have reloaded their
- * own data before new ones are constructed. A style without a theme file, or one whose
+ * own data before new ones are constructed. A theme change that keeps the same window style
+ * reuses the installed built-in renderer: the styled renderer reloads its theme data and
+ * re-applies the folder stylesheet itself, and the default renderer reads the palette while
+ * painting. Only a style that names a different renderer replaces the instance. A style without a theme file, or one whose
  * renderer is not registered, falls back to QcwTabFolderRenderer::createDefaultRenderer() and
  * an empty window stylesheet. When the stored name is not among the collected styles - which is
  * what a theme that renames a style leaves behind - the fallback is reported once with a log

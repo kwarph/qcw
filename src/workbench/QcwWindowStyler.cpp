@@ -12,6 +12,8 @@
 #include "QcwSettings.h"
 #include "QcwTabFolder.h"
 #include "QcwTabFolderContainer.h"
+#include "QcwDefaultTabFolderRenderer.h"
+#include "QcwStyledTabFolderRenderer.h"
 #include "QcwTabFolderRenderer.h"
 #include "QcwTabFolderRendererCreators.h"
 #include "QcwThemeManager.h"
@@ -26,6 +28,8 @@
 #include <QLayout>
 #include <QSet>
 #include <QTimer>
+
+#include <typeinfo>
 
 QT_BEGIN_NAMESPACE
 
@@ -369,9 +373,32 @@ void QcwWindowStylerPrivate::applyStyle(QcwTabFolder* folder, const WindowStyle&
     }
 
     auto creator = folderRendererCreators->getCreator(style.rendererType);
-    if (!creator)
+    const bool fallback = !creator;
+    if (fallback)
     {
         creator = defaultRendererCreator();
+    }
+
+    // A theme switch usually keeps the same built-in renderer type: the styled renderer
+    // reloads its own data through QcwWidgetTheme and re-applies the folder stylesheet on
+    // themeChanged(), and the default renderer reads the palette while painting. Replacing it
+    // anyway would clear the folder stylesheet and force another polish pass for every folder.
+    // Only a window style that asks for a different renderer needs a new instance; unknown
+    // renderer names keep the conservative replace path.
+    QcwTabFolderRenderer* current = folder->renderer();
+    const bool wantsDefault = fallback || style.rendererType == QLatin1String("QcwDefaultTabFolderRenderer");
+    const bool wantsStyled = !fallback && style.rendererType == QLatin1String("QcwStyledTabFolderRenderer");
+    if (current && ((wantsDefault && typeid(*current) == typeid(QcwDefaultTabFolderRenderer)) ||
+                    (wantsStyled && typeid(*current) == typeid(QcwStyledTabFolderRenderer))))
+    {
+        // Same renderer type: keep it and repaint with the new palette/CSS. A new renderer
+        // would also make setRenderer() remeasure the tab bar; send the folder's style-change
+        // path instead, so spacing, page margins and the frame mask follow the new theme data
+        // even when the theme ships identical CSS.
+        QEvent styleChange { QEvent::StyleChange };
+        QCoreApplication::sendEvent(folder, &styleChange);
+        folder->update();
+        return;
     }
 
     // A styled renderer installs its own folder stylesheet; clear whatever an earlier style
